@@ -3,25 +3,32 @@ package st.alr.homA;
 import java.util.HashMap;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-public class RoomsHashMapAdapter extends BaseAdapter {
+public class RoomsPageAdapter extends FragmentPagerAdapter {
 	private HashMap<String, Room> map;
-	private LayoutInflater inflater;
 	final Handler uiThreadHandler = new Handler();
 
-	public RoomsHashMapAdapter(Context context) {
-		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		map = new HashMap<String, Room>();
+//	public RoomsPageAdapter(Context context) {
+//		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//		map = new HashMap<String, Room>();
+//	}
+	
+	public RoomsPageAdapter(FragmentManager fm) {
+		super(fm);
 	}
 
 	public void addOnMainThread(Room room) {
-
 		class AddRunnable implements Runnable {
 			Room room;
 
@@ -112,52 +119,57 @@ public class RoomsHashMapAdapter extends BaseAdapter {
 
 	}
 
+	
+	public class RoomFragment extends Fragment {
+		/**
+		 * The fragment argument representing the section number for this
+		 * fragment.
+		 */
+		public static final String ARG_SECTION_NUMBER = "section_number";
+
+		public RoomFragment() {
+		}
+
+		@Override
+		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+			// Create a new TextView and set its text to the fragment's section
+			// number argument value.
+			
+			//setContentView(R.layout.activity_main);
+			Room room = App.getRoomAtPosition(getArguments().getInt(ARG_SECTION_NUMBER));
+			
+			
+			TextView textView = new TextView(getActivity());
+			textView.setGravity(Gravity.CENTER);
+			textView.setText(room.getId());
+			return textView;
+		}
+	}
+
+	@Override
+	public Fragment getItem(int p) {
+		Fragment fragment = new RoomFragment();
+		Bundle args = new Bundle();
+		args.putInt(RoomFragment.ARG_SECTION_NUMBER, p);
+		fragment.setArguments(args);
+		return fragment;
+	}
+
+
 	@Override
 	public int getCount() {
+		// TODO Auto-generated method stub
 		return map.size();
 	}
-
-	public Object getRoom(String id) {
-		return map.get(id);
-	}
+	
 
 	@Override
-	public Object getItem(int arg0) {
-		return map.values().toArray()[arg0];
+	public CharSequence getPageTitle(int position) {
+		return App.getRoomAtPosition(position).getId().toUpperCase();
 	}
+	
 
-	@Override
-	public long getItemId(int arg0) {
-		return 0;
-	}
 
-	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
-		return createViewFromResource(position, convertView, parent, R.layout.room_list_item);
-	}
 
-	private View createViewFromResource(int position, View convertView, ViewGroup parent, int resource) {
-		View view;
-
-		if (convertView == null) {
-			view = inflater.inflate(resource, parent, false);
-		} else {
-			view = convertView;
-		}
-
-		try {
-			Room room = (Room) getItem(position);
-			TextView room_name = (TextView) view.findViewById(R.id.room_name);
-			TextView room_device_count = (TextView) view.findViewById(R.id.room_device_count);
-			room_name.setText(room.toString());
-			room_device_count.setText(room.getDevices().size() + " devices");
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return view;
-
-	}
 
 }
