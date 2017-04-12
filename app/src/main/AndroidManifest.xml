@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="st.alr.homA"
+    android:configChanges="orientation"
+    android:versionCode="1600"
+    android:versionName="1.6.00-2mr" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.NFC" />
+
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="false" />
+
+    <application
+        android:name="st.alr.homA.App"
+        android:allowBackup="true"
+        android:icon="@drawable/homa"
+        android:label="@string/appName"
+        android:theme="@style/Theme.Homa" >
+        <activity
+            android:name="st.alr.homA.ActivityPreferences"
+            android:configChanges="orientation"
+            android:label="@string/titleActivityPreferences" >
+        </activity>
+        <activity
+            android:name="st.alr.homA.ActivityMain"
+            android:label="@string/titleActivityMain" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="st.alr.homA.services.ServiceMqtt"
+            android:exported="false" >
+        </service>
+        <service
+            android:name="st.alr.homA.services.ServiceBackgroundPublish"
+            android:exported="true" >
+        </service>
+
+        <activity
+            android:name="st.alr.homA.services.ActivityNfc"
+            android:permission="android.permission.NFC"
+            android:theme="@style/invisible" >
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="ext"
+                    android:pathPrefix="/st.alr.homa:nfc"
+                    android:scheme="vnd.android.nfc" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="st.alr.homA.ActivityQuickpublishNfc"
+            android:exported="false"
+            android:label="@string/titleActivityQuickpublishNfc" >
+        </activity>
+    </application>
+
+</manifest>
