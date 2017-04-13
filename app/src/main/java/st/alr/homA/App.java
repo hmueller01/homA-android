@@ -11,6 +11,8 @@ import st.alr.homA.services.ServiceMqtt;
 import st.alr.homA.support.Defaults;
 import st.alr.homA.support.Events;
 import st.alr.homA.support.RoomAdapter;
+
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -31,7 +33,6 @@ public class App extends Application {
     private static HashMap<String, Device> devices;
     private static NotificationCompat.Builder notificationBuilder;
     private static SharedPreferences sharedPreferences;
-    private SharedPreferences.OnSharedPreferenceChangeListener preferencesChangedListener;
     private static RoomAdapter rooms;
 
     private NotificationManager notificationManager;
@@ -51,10 +52,12 @@ public class App extends Application {
         notificationManager = (NotificationManager) App.getInstance().getSystemService(
                 Context.NOTIFICATION_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.OnSharedPreferenceChangeListener preferencesChangedListener;
         preferencesChangedListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreference, String key) {
-                if (key.equals(Defaults.SETTINGS_KEY_NOTIFICATION_ENABLED) || key.equals(Defaults.SETTINGS_KEY_QUICKPUBLISH_NOTIFICATION))
+                if (key.equals(Defaults.SETTINGS_KEY_NOTIFICATION_ENABLED) ||
+                        key.equals(Defaults.SETTINGS_KEY_QUICKPUBLISH_NOTIFICATION))
                     handleNotification();
             }
         };
@@ -65,17 +68,16 @@ public class App extends Application {
 
     public static Room getRoom(String id) {
         Log.v("getRoom", "request for " + id + "in " + rooms.getMap().toString());
-            return (Room) rooms.getItem(id);
+        return (Room) rooms.getItem(id);
     }
 
     public static Room getRoom(int index) {
-            return (Room) rooms.getItem(index);
+        return (Room) rooms.getItem(index);
     }
 
     public static Integer getRoomCount() {
         return rooms.getCount();
     }
-
 
     public static void addRoom(final Room room) {
         Runnable r = new Runnable() {
@@ -87,7 +89,7 @@ public class App extends Application {
             }
         };
         
-        if(Looper.myLooper() == Looper.getMainLooper())
+        if (Looper.myLooper() == Looper.getMainLooper())
                r.run();
         else
             uiThreadHandler.post(r);
@@ -130,7 +132,6 @@ public class App extends Application {
     }
 
     public void onEventMainThread(Events.StateChanged.ServiceMqtt event) {
-
         if (event.getState() == Defaults.State.ServiceMqtt.DISCONNECTED_WAITINGFORINTERNET
                 || event.getState() == Defaults.State.ServiceMqtt.DISCONNECTED_USERDISCONNECT
                 || event.getState() == Defaults.State.ServiceMqtt.DISCONNECTED_DATADISABLED
@@ -154,7 +155,6 @@ public class App extends Application {
 
     private void createNotification() {
         notificationBuilder = new NotificationCompat.Builder(App.getInstance());
-
         Intent resultIntent = new Intent(App.getInstance(), ActivityMain.class);
         android.support.v4.app.TaskStackBuilder stackBuilder = android.support.v4.app.TaskStackBuilder.create(this);
         stackBuilder.addParentStack(ActivityMain.class);
@@ -187,7 +187,7 @@ public class App extends Application {
         }
     }
 
-
+    @SuppressLint("HardwareIds")
     public static String getAndroidId() {
         return Secure.getString(instance.getContentResolver(), Secure.ANDROID_ID);
     }

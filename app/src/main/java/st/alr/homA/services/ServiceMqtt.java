@@ -316,11 +316,13 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
     public void disconnect(boolean fromUser) {
         Log.v(this.toString(), "disconnect");
         
-        if(isConnecting()) // throws MqttException.REASON_CODE_CONNECT_IN_PROGRESS when disconnecting while connect is in progress. 
+        if (isConnecting()) // throws MqttException.REASON_CODE_CONNECT_IN_PROGRESS when disconnecting while connect is in progress.
             return;
         
         if (fromUser)
             changeState(Defaults.State.ServiceMqtt.DISCONNECTED_USERDISCONNECT);
+        else
+            changeState(Defaults.State.ServiceMqtt.DISCONNECTED);
 
         try {
             if (netConnReceiver != null) {
@@ -451,7 +453,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
     public static String getErrorMessage() {
         Exception e = getInstance().error;
 
-        if(getInstance() != null && getInstance().hasError() && e.getCause() != null)
+        if (getInstance() != null && getInstance().hasError() && e.getCause() != null)
             return "Error: " + e.getCause().getLocalizedMessage();
         else
             return "Error: " + getInstance().getString(R.string.na);
@@ -471,7 +473,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
             @Override
             public void run() {
                 deferredPublishables.remove(p);
-                if(!p.isPublishing())//might happen that the publish is in progress while the timeout occurs.
+                if (!p.isPublishing()) //might happen that the publish is in progress while the timeout occurs.
                     p.publishFailed();
             }
         });
@@ -497,7 +499,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
             
             @Override
             public void run() {
-            if(Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
                 Log.e(this.toString(), "PUB ON MAIN THREAD");
             }
 
@@ -577,7 +579,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         }
         
         public void cancelWait() {
-            if(timeoutHandler != null)
+            if (timeoutHandler != null)
                 this.timeoutHandler.removeCallbacksAndMessages(this);
         }
 

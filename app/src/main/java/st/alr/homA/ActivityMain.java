@@ -45,16 +45,13 @@ public class ActivityMain extends FragmentActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent i;
-        
-        
-        
         int itemId = item.getItemId();
-        
-            if (mDrawerToggle.onOptionsItemSelected(item)) {
-              return true;
-            }
-            // Handle your other action bar items...
 
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+          return true;
+        }
+
+        // Handle your other action bar items...
         if (itemId == R.id.menu_settings) {
             i = new Intent(this, ActivityPreferences.class);
             startActivity(i);
@@ -82,14 +79,11 @@ public class ActivityMain extends FragmentActivity {
             connectedLayout.setVisibility(View.VISIBLE);
             disconnectedLayout.setVisibility(View.INVISIBLE);
             setActionbarTitle();
-            
         } else {
             Log.v(this.toString(), "Showing disconnected layout");
-
             connectedLayout.setVisibility(View.INVISIBLE);
             disconnectedLayout.setVisibility(View.VISIBLE);
             setActionbarTitleAppname();
-
         }
     }
 
@@ -126,25 +120,21 @@ public class ActivityMain extends FragmentActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
         
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        
-        
+
         disconnectedLayout = (RelativeLayout) findViewById(R.id.disconnectedLayout);
         connectedLayout = (LinearLayout) findViewById(R.id.connectedLayout);
 
         updateViewVisibility();
 
-
         // Set the adapter for the list view
         mDrawerList.setAdapter(App.getRoomListAdapter());
         setActionbarTitleAppname();
-
 
         mDrawerList.setOnItemClickListener(new OnItemClickListener(){
 
@@ -158,46 +148,33 @@ public class ActivityMain extends FragmentActivity {
             
         });
 
-        
-        
-        
         mDrawerToggle = new ActionBarDrawerToggle(this,                  /* host Activity */
                 mDrawerLayout,         /* DrawerLayout object */
                 R.drawable.ic_navigation_drawer,  /* nav drawer icon to replace 'Up' caret */
                 R.string.na,  /* "open drawer" description */
                 R.string.na  /* "close drawer" description */) {
-
-
-            
-            
-/** Called when a drawer has settled in a completely closed state. */
-
+            /** Called when a drawer has settled in a completely closed state. */
             @Override
             public void onDrawerClosed(View view) {
                 setActionbarTitle();
             }
 
-            
-/** Called when a drawer has settled in a completely open state. */
-
+            /** Called when a drawer has settled in a completely open state. */
             @Override
             public void onDrawerOpened(View drawerView) {
                 setActionbarTitleAppname();
             }
-
-
         };
         
         // Set the drawer toggle as the DrawerListener
         mDrawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerToggle.syncState();
-        //getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setHomeButtonEnabled(true);
         
         Room selected =  App.getRoom(PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", "")); 
-        if(selected != null)
+        if (selected != null)
             selectRoom(selected);
         
         EventBus.getDefault().register(this);
@@ -206,24 +183,20 @@ public class ActivityMain extends FragmentActivity {
     protected void setActionbarTitleAppname() {
         String appname = getString(R.string.appName);
         String abtitle = (String) getActionBar().getTitle();
-        if(abtitle != null && !abtitle.equals(appname))
-            title = abtitle;        
-           
+        if (abtitle != null && !abtitle.equals(appname))
+            title = abtitle;
         getActionBar().setTitle(appname);
-        
     }
 
-    protected void setActionbarTitle(String t){   
-     
+    protected void setActionbarTitle(String t){
         Log.v(this.toString(), "setActionbarTitle with parameter to to " + t);
-
         getActionBar().setTitle(t);
         title = t;
     }
     
     protected void setActionbarTitle() {
         Log.v(this.toString(), "setActionbarTitle to " + title);
-        if(title != null)
+        if (title != null)
             getActionBar().setTitle(title);
         else 
             setActionbarTitleAppname();
@@ -245,15 +218,15 @@ public class ActivityMain extends FragmentActivity {
     }
     
     public void onEventMainThread(Events.RoomAdded e) {
-        if(e.getRoom().getId().equals(PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""))) {
+        if (e.getRoom().getId().equals(PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""))) {
             selectRoom(e.getRoom());
         } else {
             Log.v(this.toString(), "selected "+ PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""));
             Log.v(this.toString(), "room " +e.getRoom().getId());
-            
         }
     }
-    
+
+
     public static class RoomFragment extends Fragment {
         Room room;
         DeviceAdapter adapter;
@@ -272,22 +245,18 @@ public class ActivityMain extends FragmentActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             room = App.getRoom(getArguments().getString("roomId"));
-            if(room == null) {
+            if (room == null) {
                 getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
                 Log.e(this.toString(), "Clearing fragment for removed room");
                 return;
             }
-            
-
         }
         
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
-            
-            
             View v = inflater.inflate(R.layout.fragment_room, container, false);
-            if(room == null)
+            if (room == null)
                 return v;
             
             this.listView = (ListView)v.findViewById(R.id.devices_list);
@@ -308,6 +277,7 @@ public class ActivityMain extends FragmentActivity {
             return v;
         }
     }
+
 
     public static class DeviceFragment extends android.support.v4.app.DialogFragment {
         Room room;
@@ -378,18 +348,15 @@ public class ActivityMain extends FragmentActivity {
                 builder.setTitle(device.getName());
 
                 ScrollView sw = new ScrollView(this.getActivity());
-
                 LinearLayout ll = new LinearLayout(this.getActivity());
                 ll.setOrientation(LinearLayout.VERTICAL);
                 ll.setPadding(16, 0, 16, 0);
                 for (Control control : device.getControls().values()) {
                     ll.addView(getControlView(control).attachToControl(control).getLayout());
                 }
-
                 sw.addView(ll);
                 outerLayout.addView(sw);
             }
-
             builder.setView(outerLayout);
             return builder.create();
         }
@@ -407,13 +374,10 @@ public class ActivityMain extends FragmentActivity {
 
             if (control.getMeta("type", "text").equals("switch")) {
                 v = new st.alr.homA.view.ControlViewSwitch(getActivity());
-
             } else if (control.getMeta("type", "text").equals("range")) {
                 v = new st.alr.homA.view.ControlViewRange(getActivity());
-
             } else {
                 v = new st.alr.homA.view.ControlViewText(getActivity());
-
             }
 
             return v;

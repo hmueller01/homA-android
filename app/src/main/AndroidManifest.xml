@@ -30,29 +30,16 @@
             android:label="@string/titleActivityMain" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name="st.alr.homA.services.ServiceMqtt"
-            android:exported="false" >
-        </service>
-        <service
-            android:name="st.alr.homA.services.ServiceBackgroundPublish"
-            android:exported="true" >
-        </service>
-
         <activity
             android:name="st.alr.homA.services.ActivityNfc"
             android:permission="android.permission.NFC"
             android:theme="@style/invisible" >
             <intent-filter>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data
                     android:host="ext"
                     android:pathPrefix="/st.alr.homa:nfc"
@@ -64,6 +51,15 @@
             android:exported="false"
             android:label="@string/titleActivityQuickpublishNfc" >
         </activity>
+
+        <service
+            android:name="st.alr.homA.services.ServiceMqtt"
+            android:exported="false" >
+        </service>
+        <service
+            android:name="st.alr.homA.services.ServiceBackgroundPublish"
+            android:exported="true" >
+        </service>
     </application>
 
 </manifest>
