@@ -133,14 +133,14 @@ public class ActivityMain extends FragmentActivity {
         updateViewVisibility();
 
         // Set the adapter for the list view
-        mDrawerList.setAdapter(App.getRoomListAdapter());
+        mDrawerList.setAdapter(App.getInstance().getRoomListAdapter());
         setActionbarTitleAppname();
 
         mDrawerList.setOnItemClickListener(new OnItemClickListener(){
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectRoom(App.getRoom(position));
+                selectRoom(App.getInstance().getRoom(position));
                 mDrawerLayout.closeDrawer(mDrawerList);
                 
             }
@@ -173,7 +173,7 @@ public class ActivityMain extends FragmentActivity {
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setHomeButtonEnabled(true);
         
-        Room selected =  App.getRoom(PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", "")); 
+        Room selected =  App.getInstance().getRoom(PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""));
         if (selected != null)
             selectRoom(selected);
         
@@ -226,6 +226,13 @@ public class ActivityMain extends FragmentActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        // disconnect from MQTT broker, if app is terminated
+        ServiceMqtt.getInstance().disconnect(false);
+        super.onDestroy();
+    }
+
 
     public static class RoomFragment extends Fragment {
         Room room;
@@ -244,7 +251,7 @@ public class ActivityMain extends FragmentActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            room = App.getRoom(getArguments().getString("roomId"));
+            room = App.getInstance().getRoom(getArguments().getString("roomId"));
             if (room == null) {
                 getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
                 Log.e(this.toString(), "Clearing fragment for removed room");
@@ -323,8 +330,7 @@ public class ActivityMain extends FragmentActivity {
                 b = savedInstanceState;
             else
                 b = getArguments();
-
-            room = App.getRoom(b.getString("roomId"));
+            room = App.getInstance().getRoom(b.getString("roomId"));
             if (room == null) {
                 Log.e(this.toString(), "DeviceFragment for phantom room: " + b.getString("roomId"));
                 return false;
