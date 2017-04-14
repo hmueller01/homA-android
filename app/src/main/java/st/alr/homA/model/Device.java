@@ -8,6 +8,7 @@ import st.alr.homA.support.ValueSortedMap;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 public class Device implements Comparable<Device> {
@@ -16,32 +17,27 @@ public class Device implements Comparable<Device> {
     private Room room;
     private ValueSortedMap<String, Control> controls;
     private ValueChangedObserver controlAddedObserver;
-    
-    public Room getRoom() {
-        return room;
-    }
-
     private Context context;
-
-
 
     public Device(String id, Context context) {
         this.id = id;
         this.name = null;
-        controls = new ValueSortedMap<String, Control>();
+        this.controls = new ValueSortedMap<>();
         this.context = context;
     }
 
-    public void removeFromCurrentRoom() {
+    public Room getRoom() {
+        return room;
+    }
 
+    public void removeFromCurrentRoom() {
         if (room != null) {
             room.removeDevice(this);
             if (room.getDeviceCount() == 0) {
                 Log.v(toString(), "Room " + room.getId() + " is empty, removing it");
-                App.removeRoom(room);
+                App.getInstance().removeRoom(room);
             }
         }
-
     }
 
     public void moveToRoom(final String roomname) {
@@ -55,11 +51,11 @@ public class Device implements Comparable<Device> {
 
                 String cleanedName = (roomname != null) && !roomname.equals("") ? roomname : Defaults.VALUE_ROOM_NAME;
 
-                Room newRoom = App.getRoom(cleanedName);
+                Room newRoom = App.getInstance().getRoom(cleanedName);
 
                 if (newRoom == null) {
                     newRoom = new Room(context, cleanedName);
-                    App.addRoom(newRoom);
+                    App.getInstance().addRoom(newRoom);
                 }
 
                 removeFromCurrentRoom();
@@ -70,12 +66,9 @@ public class Device implements Comparable<Device> {
         };
         
         if(Looper.myLooper() == Looper.getMainLooper())
-               r.run();
+            r.run();
         else
             new Handler(context.getMainLooper()).post(r);
-        
-        
-
     }
 
     public String getName() {
@@ -100,7 +93,7 @@ public class Device implements Comparable<Device> {
     }
 
     public void setControlAddedObserver(ValueChangedObserver observer) {
-        this.controlAddedObserver = observer;
+        controlAddedObserver = observer;
     }
 
     public void removeControlAddedObserver() {
@@ -117,8 +110,8 @@ public class Device implements Comparable<Device> {
     }
 
     @Override
-    public int compareTo(Device another) {
-        return this.getName().compareToIgnoreCase(another.getName());
+    public int compareTo(@NonNull Device another) {
+        return getName().compareToIgnoreCase(another.getName());
     }
 
     public void setMeta(String key, String value) {
