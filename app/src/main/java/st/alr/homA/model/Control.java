@@ -1,28 +1,27 @@
 
 package st.alr.homA.model;
 
+import android.content.Context;
+import android.support.annotation.NonNull;
+
 import java.util.HashMap;
 
 import st.alr.homA.support.ValueChangedObserver;
-import android.content.Context;
 
 public class Control implements Comparable<Control> {
-    ValueChangedObserver observer;
-    Context context;
-    Device device;
-    String value;
-    String topic;
-    String id;
-    Integer order;
-    HashMap<String, String> meta;
+    private ValueChangedObserver observer;
+    private Device device;
+    private String value;
+    private String topic;
+    private String id;
+    private HashMap<String, String> meta;
 
-    public Control(Context context, String id, Device device) {
+    public Control(String id, Device device) {
         this.id = id;
         this.value = "0";
         this.topic = "/devices/"+ device.toString() + "/controls/" + id + "/on";
         this.device = device;
-        this.context = context;
-        this.meta = new HashMap<String, String>();
+        this.meta = new HashMap<>();
     }
 
     public String getValue() {
@@ -81,7 +80,7 @@ public class Control implements Comparable<Control> {
         }
     }
 
-    public int compareTo(Control other) {
+    public int compareTo(@NonNull Control other) {
         int result = 0;
         
         if (getOrder() > other.getOrder()) {
