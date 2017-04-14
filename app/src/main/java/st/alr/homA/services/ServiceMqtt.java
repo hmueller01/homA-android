@@ -63,11 +63,9 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
     private MqttClient mqttClient;
     private SharedPreferences sharedPreferences;
     private static ServiceMqtt instance;
-    private SharedPreferences.OnSharedPreferenceChangeListener preferencesChangedListener;
     private Thread workerThread;
     private LinkedList<DeferredPublishable> deferredPublishables;
     private Exception error;
-    private HandlerThread pubThread;
     private Handler pubHandler;
 
     private BroadcastReceiver netConnReceiver;
@@ -82,27 +80,29 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         changeState(Defaults.State.ServiceMqtt.INITIAL);
         keepAliveSeconds = 15 * 60;
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        deferredPublishables = new LinkedList<DeferredPublishable>();
+        deferredPublishables = new LinkedList<>();
         EventBus.getDefault().register(this);
-        
-        pubThread = new HandlerThread("MQTTPUBTHREAD");
+
+        HandlerThread pubThread = new HandlerThread("MQTTPUBTHREAD");
         pubThread.start();
         pubHandler = new Handler(pubThread.getLooper());
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        doStart(intent, startId);
+        doStart(startId);
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private void doStart(final Intent intent, final int startId) {
-        // init();
-
+    /**
+     * Start the MQTT service in a new thread.
+     * @param startId Start Id, set to -1 to force start (after manual disconnect)
+     */
+    private void doStart(final int startId) {
         Thread thread1 = new Thread() {
             @Override
             public void run() {
-                handleStart(intent, startId);
+                handleStart(startId);
                 if (this == workerThread) // Clean up worker thread
                     workerThread = null;
             }
@@ -117,7 +117,11 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         thread1.start();
     }
 
-    void handleStart(Intent intent, int startId) {
+    /**
+     * Handle the start of the MQTT service.
+     * @param startId Start Id, set to -1 to force start (after manual disconnect)
+     */
+    void handleStart(int startId) {
         Log.v(this.toString(), "handleStart");
 
         // Respect user's wish to stay disconnected. Overwrite with startId == -1 to reconnect manually afterwards
@@ -167,10 +171,11 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
 
     
     /**
+     * Init the MQTT client and set the callback for receiving messages.
      * @category CONNECTION HANDLING
      */
-    private void init() {
-        Log.v(this.toString(), "initMqttClient");
+    private void initMqttClient() {
+        Log.v(this.toString(), "init MQTT Client");
 
         if (mqttClient != null) {
             return;
@@ -179,24 +184,15 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         try {
             String brokerAddress = sharedPreferences.getString(Defaults.SETTINGS_KEY_BROKER_HOST,
                     Defaults.VALUE_BROKER_HOST);
-            Log.v(this.toString(), "1");
             String brokerPort = sharedPreferences.getString(Defaults.SETTINGS_KEY_BROKER_PORT,
                     Defaults.VALUE_BROKER_PORT);
             if(brokerPort.equals(""))
                 brokerPort = Defaults.VALUE_BROKER_PORT;
-            
-            Log.v(this.toString(), "2");
-
-            String prefix = getBrokerSecurityMode() == Defaults.VALUE_BROKER_SECURITY_NONE ? "tcp"
-                    : "ssl";
-            Log.v(this.toString(), "3");
-
-            mqttClient = new MqttClient(prefix + "://" + brokerAddress + ":" + brokerPort, ActivityPreferences.getDeviceName(), null);
-            Log.v(this.toString(), "4");
-        
-
+            String prefix = getBrokerSecurityMode() == Defaults.VALUE_BROKER_SECURITY_NONE ? "tcp" : "ssl";
+            String serverURI = prefix + "://" + brokerAddress + ":" + brokerPort;
+            Log.v(this.toString(), "serverURI=" + serverURI);
+            mqttClient = new MqttClient(serverURI, ActivityPreferences.getDeviceName(), null);
             mqttClient.setCallback(this);
-            Log.v(this.toString(), "5");
         } catch (MqttException e) {
             // something went wrong!
             mqttClient = null;
@@ -242,11 +238,11 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
     }
 
     private boolean connect() {
+        Log.v(this.toString(), "connect");
         workerThread = Thread.currentThread(); // We connect, so we're the
                                                // worker thread
-        Log.v(this.toString(), "connect");
         error = null; // clear previous error on connect
-        init();
+        initMqttClient();
 
         try {
             changeState(Defaults.State.ServiceMqtt.CONNECTING);
@@ -330,6 +326,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
                 netConnReceiver = null;
             }
 
+            cancelNextPing();
             if (pingSender != null) {
                 unregisterReceiver(pingSender);
                 pingSender = null;
@@ -375,7 +372,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
 
     public void reconnect() {
         disconnect(true);
-        doStart(null, -1);
+        doStart(-1);
     }
 
     public void onEvent(Events.StateChanged.ServiceMqtt event) {
@@ -441,8 +438,6 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
 
         changeState(Defaults.State.ServiceMqtt.DISCONNECTED);
 
-        sharedPreferences.unregisterOnSharedPreferenceChangeListener(preferencesChangedListener);
-
         super.onDestroy();
     }
 
@@ -507,7 +502,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
                 Log.d(this.toString(), "pub deferred");
 
                 deferPublish(p);
-                doStart(null, 1);
+                doStart(1);
                 return;
             }
 
@@ -618,8 +613,8 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
             wl.acquire();
 
             if (isOnline(true) && !isConnected() && !isConnecting()) {
-                Log.v(this.toString(), "NetworkConnectionIntentReceiver: triggering doStart(null, -1)");
-                doStart(null, 1);
+                Log.v(this.toString(), "NetworkConnectionIntentReceiver: triggering doStart(-1)");
+                doStart(1);
             }
             wl.release();
         }
@@ -665,7 +660,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
             Control control = device.getControlWithId(controlName);
 
             if (control == null) {
-                control = new Control(this, controlName, device);
+                control = new Control(controlName, device);
                 device.addControl(control);
             }
             if (splitTopic.length == 5) { // Control value
@@ -688,12 +683,10 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
 
     public class PingSender extends BroadcastReceiver {
         @Override
-        public void onReceive(Context context, Intent intent)
-        {
-
+        public void onReceive(Context context, Intent intent) {
             if (isOnline(true) && !isConnected() && !isConnecting()) {
                 Log.v(this.toString(), "ping: isOnline()=" + isOnline(true)  + ", isConnected()=" + isConnected());
-                doStart(null, -1);
+                doStart(-1);
             } else if (!isOnline(true)) {
                 Log.d(this.toString(), "ping: Waiting for network to come online again");
             } else {            
@@ -717,7 +710,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
 
                     // reconnect
                     Log.w(this.toString(), "onReceive: MqttException=" + e);
-                    doStart(null, -1);
+                    doStart(-1);
                 }
             }
             scheduleNextPing();
@@ -733,6 +726,13 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
 
         AlarmManager aMgr = (AlarmManager) getSystemService(ALARM_SERVICE);
         aMgr.set(AlarmManager.RTC_WAKEUP, wakeUpTime.getTimeInMillis(), pendingIntent);
+    }
+
+    private void cancelNextPing() {
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(
+                Defaults.INTENT_ACTION_PUBLICH_PING), PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager aMgr = (AlarmManager) getSystemService(ALARM_SERVICE);
+        aMgr.cancel(pendingIntent);
     }
 
     private void ping() throws MqttException {
