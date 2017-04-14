@@ -30,10 +30,10 @@ import de.greenrobot.event.EventBus;
 
 public class App extends Application {
     private static App instance;
-    private static HashMap<String, Device> devices;
     private static NotificationCompat.Builder notificationBuilder;
     private static SharedPreferences sharedPreferences;
-    private static RoomAdapter rooms;
+    private RoomAdapter rooms;
+    private static HashMap<String, Device> devices;
 
     private NotificationManager notificationManager;
     private static Handler uiThreadHandler;
@@ -41,12 +41,13 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.v(this.toString(), "onCreate()");
         //TODO Bugsnag.register(this, Defaults.BUGSNAG_API_KEY);
         //TODO Bugsnag.setNotifyReleaseStages("production", "testing");
         instance = this;
         uiThreadHandler = new Handler(getMainLooper());
 
-        devices = new HashMap<String, Device>();
+        devices = new HashMap<>();
         rooms = new RoomAdapter(this);
 
         notificationManager = (NotificationManager) App.getInstance().getSystemService(
@@ -66,20 +67,20 @@ public class App extends Application {
         EventBus.getDefault().register(this);
     }
 
-    public static Room getRoom(String id) {
+    public Room getRoom(String id) {
         Log.v("getRoom", "request for " + id + "in " + rooms.getMap().toString());
         return (Room) rooms.getItem(id);
     }
 
-    public static Room getRoom(int index) {
+    public Room getRoom(int index) {
         return (Room) rooms.getItem(index);
     }
 
-    public static Integer getRoomCount() {
+    public Integer getRoomCount() {
         return rooms.getCount();
     }
 
-    public static void addRoom(final Room room) {
+    public void addRoom(final Room room) {
         Runnable r = new Runnable() {
             
             @Override
@@ -95,7 +96,7 @@ public class App extends Application {
             uiThreadHandler.post(r);
     }
 
-    public static void removeRoom(final Room room) {
+    public void removeRoom(final Room room) {
         Runnable r  = new Runnable() {
            
             @Override
@@ -109,14 +110,18 @@ public class App extends Application {
         else
             uiThreadHandler.post(r);
     }
-   
-    public static void removeAllRooms() {
+
+    public void removeAllRooms() {
         uiThreadHandler.post(new Runnable() {
             @Override
             public void run() {
                 rooms.clearItems();
             }
         });
+    }
+
+    public ListAdapter getRoomListAdapter() {
+        return rooms;
     }
 
     public static Device getDevice(String id) {
@@ -129,6 +134,10 @@ public class App extends Application {
 
     public static App getInstance() {
         return instance;
+    }
+
+    public static Context getContext() {
+        return getInstance();
     }
 
     public void onEventMainThread(Events.StateChanged.ServiceMqtt event) {
@@ -190,13 +199,5 @@ public class App extends Application {
     @SuppressLint("HardwareIds")
     public static String getAndroidId() {
         return Secure.getString(instance.getContentResolver(), Secure.ANDROID_ID);
-    }
-    
-    public static Context getContext() {
-        return getInstance();
-    }
-
-    public static ListAdapter getRoomListAdapter() {
-        return rooms;
     }
 }
