@@ -1,17 +1,5 @@
 package st.alr.homA;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import st.alr.homA.model.Device;
-import st.alr.homA.model.Quickpublish;
-import st.alr.homA.model.Room;
-import st.alr.homA.services.ServiceBackgroundPublish;
-import st.alr.homA.services.ServiceMqtt;
-import st.alr.homA.support.Defaults;
-import st.alr.homA.support.Events;
-import st.alr.homA.support.RoomAdapter;
-
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.app.NotificationManager;
@@ -24,13 +12,26 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.ListAdapter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import de.greenrobot.event.EventBus;
+import st.alr.homA.model.Device;
+import st.alr.homA.model.Quickpublish;
+import st.alr.homA.model.Room;
+import st.alr.homA.services.ServiceBackgroundPublish;
+import st.alr.homA.services.ServiceMqtt;
+import st.alr.homA.support.Defaults;
+import st.alr.homA.support.Events;
+import st.alr.homA.support.RoomAdapter;
 
 public class App extends Application {
     private static App instance;
-    private static NotificationCompat.Builder notificationBuilder;
+    private NotificationCompat.Builder notificationBuilder;
     private static SharedPreferences sharedPreferences;
     private RoomAdapter rooms;
     private static HashMap<String, Device> devices;
@@ -50,8 +51,7 @@ public class App extends Application {
         devices = new HashMap<>();
         rooms = new RoomAdapter(this);
 
-        notificationManager = (NotificationManager) App.getInstance().getSystemService(
-                Context.NOTIFICATION_SERVICE);
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.OnSharedPreferenceChangeListener preferencesChangedListener;
         preferencesChangedListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
@@ -163,9 +163,9 @@ public class App extends Application {
     }
 
     private void createNotification() {
-        notificationBuilder = new NotificationCompat.Builder(App.getInstance());
-        Intent resultIntent = new Intent(App.getInstance(), ActivityMain.class);
-        android.support.v4.app.TaskStackBuilder stackBuilder = android.support.v4.app.TaskStackBuilder.create(this);
+        notificationBuilder = new NotificationCompat.Builder(this);
+        Intent resultIntent = new Intent(this, ActivityMain.class);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(ActivityMain.class);
         stackBuilder.addNextIntent(resultIntent);
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);

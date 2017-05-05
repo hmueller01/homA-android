@@ -51,10 +51,9 @@ public class ActivityPreferences extends PreferenceActivity {
                 Defaults.SETTINGS_KEY_BROKER_AUTH, Defaults.VALUE_BROKER_AUTH_ANONYMOUS);
     }
 
-    public static String getBrokerUsername()
-    {
+    public static String getBrokerUsername() {
         return PreferenceManager.getDefaultSharedPreferences(App.getContext()).getString(
-                st.alr.homA.support.Defaults.SETTINGS_KEY_BROKER_USERNAME, "");
+                Defaults.SETTINGS_KEY_BROKER_USERNAME, "");
     }
 
     public static String getDeviceName()
@@ -66,7 +65,6 @@ public class ActivityPreferences extends PreferenceActivity {
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
-
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.preferences);
 

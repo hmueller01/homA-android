@@ -18,14 +18,12 @@ public class DeviceAdapter extends MapAdapter<String, Device> {
 		public TextView title;
 	}
 
-	
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View rowView = convertView;
 		ViewHolder holder;
 
 		if (rowView == null) {
-		    
 			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			rowView = inflater.inflate(R.layout.row_layout, null);
 
@@ -35,13 +33,8 @@ public class DeviceAdapter extends MapAdapter<String, Device> {
 		} else {
 			holder = (ViewHolder) rowView.getTag();
 		}
-
 		holder.title.setText(((Device) getItem(position)).getName());
 
 		return rowView;
-
 	}
-
-
-
 }

@@ -1,24 +1,17 @@
 
 package st.alr.homA;
 
-import st.alr.homA.model.Control;
-import st.alr.homA.model.Device;
-import st.alr.homA.model.Room;
-import st.alr.homA.services.ServiceMqtt;
-import st.alr.homA.support.Defaults;
-import st.alr.homA.support.DeviceAdapter;
-import st.alr.homA.support.Events;
-import st.alr.homA.support.ValueSortedMap;
-import st.alr.homA.view.ControlView;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,7 +25,16 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+
 import de.greenrobot.event.EventBus;
+import st.alr.homA.model.Control;
+import st.alr.homA.model.Device;
+import st.alr.homA.model.Room;
+import st.alr.homA.services.ServiceMqtt;
+import st.alr.homA.support.Defaults;
+import st.alr.homA.support.Events;
+import st.alr.homA.support.ValueSortedMap;
+import st.alr.homA.view.*;
 
 public class ActivityMain extends FragmentActivity {
     private DrawerLayout mDrawerLayout;
@@ -74,7 +76,7 @@ public class ActivityMain extends FragmentActivity {
     }
 
     private void updateViewVisibility() {
-        if (ServiceMqtt.getState() == st.alr.homA.support.Defaults.State.ServiceMqtt.CONNECTED) {
+        if (ServiceMqtt.getState() == Defaults.State.ServiceMqtt.CONNECTED) {
             Log.v(this.toString(), "Showing connected layout");
             connectedLayout.setVisibility(View.VISIBLE);
             disconnectedLayout.setVisibility(View.INVISIBLE);
@@ -136,16 +138,12 @@ public class ActivityMain extends FragmentActivity {
         mDrawerList.setAdapter(App.getInstance().getRoomListAdapter());
         setActionbarTitleAppname();
 
-        mDrawerList.setOnItemClickListener(new OnItemClickListener(){
-
+        mDrawerList.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 selectRoom(App.getInstance().getRoom(position));
                 mDrawerLayout.closeDrawer(mDrawerList);
-                
             }
-
-            
         });
 
         mDrawerToggle = new ActionBarDrawerToggle(this,                  /* host Activity */
@@ -236,7 +234,6 @@ public class ActivityMain extends FragmentActivity {
 
     public static class RoomFragment extends Fragment {
         Room room;
-        DeviceAdapter adapter;
         private ListView listView;
         
         public static RoomFragment newInstance(Room r) {
@@ -255,7 +252,6 @@ public class ActivityMain extends FragmentActivity {
             if (room == null) {
                 getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
                 Log.e(this.toString(), "Clearing fragment for removed room");
-                return;
             }
         }
         
@@ -272,8 +268,8 @@ public class ActivityMain extends FragmentActivity {
 
                 @Override
                 public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
-                    android.support.v4.app.FragmentManager fm = getFragmentManager();
-                    android.support.v4.app.FragmentTransaction ft = fm.beginTransaction();
+                    FragmentManager fm = getFragmentManager();
+                    FragmentTransaction ft = fm.beginTransaction();
 
                     DeviceFragment d = DeviceFragment.newInstance(room.getId(), room.getDevice(position).toString());
                     ft.add(d, "tag");
@@ -302,8 +298,8 @@ public class ActivityMain extends FragmentActivity {
         public void onEventMainThread(Events.StateChanged.ServiceMqtt event) {
             if (event.getState() != Defaults.State.ServiceMqtt.CONNECTED) {
                 Log.v(this.toString(), "Lost connection, closing currently open dialog");
-                android.support.v4.app.FragmentManager fragmentManager = getFragmentManager();
-                android.support.v4.app.FragmentTransaction fragmentTransaction = fragmentManager
+                FragmentManager fragmentManager = getFragmentManager();
+                FragmentTransaction fragmentTransaction = fragmentManager
                         .beginTransaction();
                 fragmentTransaction.remove(this);
                 fragmentTransaction.commit();
@@ -341,6 +337,7 @@ public class ActivityMain extends FragmentActivity {
             return true;
         }
 
+        @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             LinearLayout outerLayout = new LinearLayout(this.getActivity());
@@ -376,14 +373,14 @@ public class ActivityMain extends FragmentActivity {
         }
 
         public ControlView getControlView(Control control) {
-            ControlView v = null;
+            ControlView v;
 
             if (control.getMeta("type", "text").equals("switch")) {
-                v = new st.alr.homA.view.ControlViewSwitch(getActivity());
+                v = new ControlViewSwitch(getActivity());
             } else if (control.getMeta("type", "text").equals("range")) {
-                v = new st.alr.homA.view.ControlViewRange(getActivity());
+                v = new ControlViewRange(getActivity());
             } else {
-                v = new st.alr.homA.view.ControlViewText(getActivity());
+                v = new ControlViewText(getActivity());
             }
 
             return v;

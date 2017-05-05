@@ -56,7 +56,6 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
         listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
         listView.setMultiChoiceModeListener(multiChoiceListener);
         writeMode = false;
-
     }
     
     @Override
@@ -65,8 +64,7 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
         this.menu = menu;
         return true;
     }
-    
-   
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -137,7 +135,6 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
         NdefRecord[] records = { createRecord(text), aar };
         NdefMessage ndefMsg = new NdefMessage(records);
 
-        
         try {
             Ndef ndef = Ndef.get(tag);
             if (ndef != null) {
@@ -231,10 +228,8 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
             // Not required for NFC
             view.findViewById(R.id.textView0).setVisibility(View.GONE);
             view.findViewById(R.id.quickpublishNameInput).setVisibility(View.GONE);
-            
-            
+
             topicInput.addTextChangedListener(new TextWatcher() {
-                
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {}
                 
@@ -244,22 +239,19 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
                 @Override
                 public void afterTextChanged(Editable s) {
                     View v = getDialog().findViewById(android.R.id.button1);
-                    if(v == null)
+                    if (v == null)
                         return; 
                     
-                    if(s.toString().length() > 0)
+                    if (s.toString().length() > 0)
                         v.setEnabled(true);
                     else
                         v.setEnabled(false);
-
                 }
             });
             
             return view;
         }
 
-        
-        
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
@@ -280,9 +272,6 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
                             dismiss();
                         }
                     });
-            
-        
-
             Dialog dialog = builder.create();
             dialog.setOnShowListener(new OnShowListener() {
                 
@@ -305,8 +294,6 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
         IntentFilter writeTagFilters[];
         Tag mytag;
 
-        
-        
         private View getContentView(Bundle savedInstance) {
             Log.v(this.toString(), "getContentView: " + savedInstance);
             String savedMessage = savedInstance != null ? savedInstance.getString("savedMessage") : null;
@@ -339,7 +326,6 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
             super.onStart();
             Log.v(this.toString(), "WriteFragment onStart. Tag is " + getTag());
         }
-
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -392,7 +378,6 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
             super.onSaveInstanceState(outState);
             outState.putString("savedMessage", (String) tv.getText());
         }
-
 
     }
 }
