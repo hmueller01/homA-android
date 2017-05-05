@@ -34,11 +34,9 @@ public class ActivityPreferences extends PreferenceActivity {
         // Replace content with fragment for custom preferences
         getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, new CustomPreferencesFragment()).commit();
-
     }
 
     public static String getAndroidId() {
-
         String id = App.getAndroidId();
 
         // MQTT specification doesn't allow client IDs longer than 23 chars
@@ -51,7 +49,6 @@ public class ActivityPreferences extends PreferenceActivity {
     public static int getBrokerAuthType() {
         return PreferenceManager.getDefaultSharedPreferences(App.getContext()).getInt(
                 Defaults.SETTINGS_KEY_BROKER_AUTH, Defaults.VALUE_BROKER_AUTH_ANONYMOUS);
-
     }
 
     public static String getBrokerUsername()
@@ -90,7 +87,6 @@ public class ActivityPreferences extends PreferenceActivity {
                 PreferenceScreen nfcPreferenceItem = (PreferenceScreen) findPreference("preferencesNFC");
                 nfcPreferenceItem.setEnabled(false);
             }
-
         }
     }
 
@@ -104,21 +100,16 @@ public class ActivityPreferences extends PreferenceActivity {
     }
 
     private static void setServerPreferenceSummary(Events.StateChanged.ServiceMqtt e) {
-
         if (e != null) {
             if (e.getExtra() != null && e.getExtra() instanceof Exception
                     && ((Exception) e.getExtra()).getCause() != null) {
                 serverPreference.setSummary(((Exception) e.getExtra()).getCause()
                         .getLocalizedMessage());
-                
-
             } else {
                 serverPreference.setSummary(Defaults.State.toString(e.getState()));
             }
         } else {
-
             serverPreference.setSummary(ServiceMqtt.getStateAsString());
-
         }
     }
 

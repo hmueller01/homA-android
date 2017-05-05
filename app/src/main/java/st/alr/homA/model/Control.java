@@ -1,7 +1,6 @@
 
 package st.alr.homA.model;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 
 import java.util.HashMap;
@@ -41,11 +40,11 @@ public class Control implements Comparable<Control> {
     }
 
     public void setMeta(String key, String value) {
-        if(!value.equals(""))              
+        if (!value.equals(""))
             meta.put(key, value);
         else
             meta.remove(key);
-        if(key.equals("order")) {
+        if (key.equals("order")) {
             this.device.sortControls();
         }
     }
@@ -72,7 +71,7 @@ public class Control implements Comparable<Control> {
         observer = null;
     }
     
-    public Integer getOrder(){
+    public Integer getOrder() {
         try {
             return Integer.parseInt(this.getMeta("order", "0"));
         } catch (NumberFormatException e) {
