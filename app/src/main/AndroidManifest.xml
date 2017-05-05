@@ -34,6 +34,11 @@
             </intent-filter>
         </activity>
         <activity
+            android:name="st.alr.homA.ActivityQuickpublishNotification"
+            android:exported="false"
+            android:label="@string/titleActivityQuickpublishNotification" >
+        </activity>
+        <activity
             android:name="st.alr.homA.services.ActivityNfc"
             android:permission="android.permission.NFC"
             android:theme="@style/invisible" >
