@@ -32,10 +32,8 @@ public class QuickpublishAdapter extends BaseAdapter {
 
         for (Quickpublish quickpublish : array) 
             add(quickpublish);
-
     }
 
-    
     @Override
     public Quickpublish getItem(int arg0) {
         return (Quickpublish) map.values().toArray()[arg0];
@@ -50,7 +48,6 @@ public class QuickpublishAdapter extends BaseAdapter {
         return 0;
     }
 
-    
     static class ViewHolder {
         public TextView name;
         public TextView subtitle;
@@ -78,7 +75,6 @@ public class QuickpublishAdapter extends BaseAdapter {
         holder.subtitle.setText("Payload: " + q.getPayload() + " Retained: " + q.isRetained());
 
         return rowView;
-
     }
     
     public void add(Quickpublish q) {
@@ -92,16 +88,14 @@ public class QuickpublishAdapter extends BaseAdapter {
     }
 
     public void remove(int position) {
-        map.remove(getItem(position));
-        notifyDataSetChanged();
+        remove(getItem(position));
     }
 
-    
     public void remove(SparseBooleanArray sba) {
-            for (int i = 0; i < getCount(); i++)
-                if (sba.get(i))
-                    remove(i);
-            notifyDataSetChanged();
+        for (int i = 0; i < getCount(); i++)
+            if (sba.get(i))
+                remove(i);
+        notifyDataSetChanged();
     }
 
 }
