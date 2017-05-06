@@ -30,7 +30,6 @@ import android.widget.TextView;
 
 public class ActivityQuickpublishNotification extends FragmentActivity {
     private ListView listView;
-    private Menu menu;
     private QuickpublishAdapter listAdapter;
 
     @Override
@@ -79,7 +78,6 @@ public class ActivityQuickpublishNotification extends FragmentActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_quickpublish, menu);
-        this.menu = menu;
         return true;
     }
 
@@ -194,7 +192,6 @@ public class ActivityQuickpublishNotification extends FragmentActivity {
 
         private void conditionallyEnableSaveButton() {
             View v = getDialog().findViewById(android.R.id.button1);
-
             if (v == null)
                 return;
 
@@ -227,10 +224,9 @@ public class ActivityQuickpublishNotification extends FragmentActivity {
                         }
                     })
                     .setPositiveButton(getResources().getString(q != null ? R.string.save : R.string.add), new DialogInterface.OnClickListener() {
-
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            if(q != null) {
+                            if (q != null) {
                                 Log.v(this.toString(), "updating qp");
                                 q.setName(nameInput.getText().toString());
                                 q.setTopic(topicInput.getText().toString());
@@ -239,7 +235,10 @@ public class ActivityQuickpublishNotification extends FragmentActivity {
                                 ((ActivityQuickpublishNotification) getActivity()).update(q);
                             } else {
                                 Log.v(this.toString(), "adding qp");
-                                Quickpublish q = new Quickpublish(nameInput.getText().toString(), topicInput.getText().toString(), payloadInput.getText().toString(), retainedCheckbox.isChecked()); 
+                                Quickpublish q = new Quickpublish(nameInput.getText().toString(),
+                                        topicInput.getText().toString(),
+                                        payloadInput.getText().toString(),
+                                        retainedCheckbox.isChecked());
                                 ((ActivityQuickpublishNotification) getActivity()).add(q);
 
                             }
