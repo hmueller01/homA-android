@@ -5,9 +5,9 @@
 
     <ListView
         android:id="@+id/devices_list"
+        android:layout_width="0dp"
         android:layout_weight="1"
-        style="@style/homa_listview"
->
+        style="@style/homa_listview" >
     </ListView>
 
 </LinearLayout> 

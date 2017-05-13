@@ -12,11 +12,9 @@
         android:layout_marginBottom="0dip"
         android:layout_marginLeft="9dip"
         android:layout_marginTop="10dip"
-
         android:gravity="left|center_vertical"
         android:textColor="?android:attr/textColorPrimary"
-        android:textSize="14sp" 
-        />
+        android:textSize="14sp" />
 
     <TextView
         android:id="@+id/textControlValue"
@@ -25,7 +23,6 @@
         android:layout_marginBottom="10dip"
         android:gravity="left|center_vertical"
         android:layout_marginLeft="9dip"
-        
         android:textSize="18sp" />
 
 </LinearLayout>
