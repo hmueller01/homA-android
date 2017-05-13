@@ -8,6 +8,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+/**
+ * Class Room keeps all the devices in a room.
+ */
 public class Room implements Comparable<Room> {
     private String id;
     private DeviceAdapter devices;
@@ -28,6 +31,7 @@ public class Room implements Comparable<Room> {
     public Device getDevice(String id) {
         return (Device) devices.getItem(id);
     }
+    
     public Device getDevice(int position) {
         return (Device) devices.getItem(position);
     }
@@ -40,7 +44,6 @@ public class Room implements Comparable<Room> {
     public void addDevice(final Device device) {
         final Room room = this;
         Runnable r  = new Runnable() {
-            
             @Override
             public void run() {
                 Log.v(this.toString(), "Adding " + device.getName() + " to " + room.getId());
@@ -48,16 +51,14 @@ public class Room implements Comparable<Room> {
             }
         };
         
-        if(Looper.myLooper() == Looper.getMainLooper())
-               r.run();
+        if (Looper.myLooper() == Looper.getMainLooper())
+        	r.run();
         else
             uiThreadHandler.post(r);
     }
 
     public void removeDevice(final Device device) {
-        
         Runnable r  = new Runnable() {
-            
             @Override
             public void run() {
                 devices.removeItem(device);
@@ -68,7 +69,6 @@ public class Room implements Comparable<Room> {
                r.run();
         else
             uiThreadHandler.post(r);
-        
     }
 
     @Override

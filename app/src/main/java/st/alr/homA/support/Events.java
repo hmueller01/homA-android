@@ -3,15 +3,11 @@ package st.alr.homA.support;
 import st.alr.homA.model.Device;
 import st.alr.homA.model.Quickpublish;
 import st.alr.homA.model.Room;
+
 public class Events {
     
-
-
-
     public static class RoomsCleared {
-
     }
-
 
     public static class QuickpublishNotificationAdded {
         Quickpublish q;
@@ -62,10 +58,8 @@ public class Events {
             public Object getExtra() {
                 return extra;
             }
-            
         }
-
-   }
+    }
 
 	public static class RoomAdded {
 		Room room;
@@ -150,4 +144,5 @@ public class Events {
 			return this.room;
 		}
 	}
+
 }

@@ -1,6 +1,17 @@
 
 package st.alr.homA;
 
+import st.alr.homA.model.Control;
+import st.alr.homA.model.Device;
+import st.alr.homA.model.Room;
+import st.alr.homA.services.ServiceMqtt;
+import st.alr.homA.support.Defaults;
+import st.alr.homA.support.Events;
+import st.alr.homA.support.ValueSortedMap;
+import st.alr.homA.view.ControlView;
+import st.alr.homA.view.ControlViewRange;
+import st.alr.homA.view.ControlViewSwitch;
+import st.alr.homA.view.ControlViewText;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
@@ -8,6 +19,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -25,16 +37,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-
 import de.greenrobot.event.EventBus;
-import st.alr.homA.model.Control;
-import st.alr.homA.model.Device;
-import st.alr.homA.model.Room;
-import st.alr.homA.services.ServiceMqtt;
-import st.alr.homA.support.Defaults;
-import st.alr.homA.support.Events;
-import st.alr.homA.support.ValueSortedMap;
-import st.alr.homA.view.*;
 
 public class ActivityMain extends FragmentActivity {
     private DrawerLayout mDrawerLayout;
@@ -228,12 +231,18 @@ public class ActivityMain extends FragmentActivity {
     protected void onDestroy() {
         // disconnect from MQTT broker, if app is terminated
         ServiceMqtt.getInstance().disconnect(false);
+        App.getInstance().cancelNotification();
+        EventBus.getDefault().unregister(this);
+        // TODO: Still sudden app restarts, reason unknown.
         super.onDestroy();
     }
 
 
+    /**
+     * This Fragment class lists/shows all the devices of a room.
+     */
     public static class RoomFragment extends Fragment {
-        Room room;
+        private Room room;
         private ListView listView;
         
         public static RoomFragment newInstance(Room r) {
@@ -262,29 +271,30 @@ public class ActivityMain extends FragmentActivity {
             if (room == null)
                 return v;
             
-            this.listView = (ListView)v.findViewById(R.id.devices_list);
+            listView = (ListView) v.findViewById(R.id.devices_list);
             listView.setAdapter(room.getAdapter());
-            listView.setOnItemClickListener(new OnItemClickListener(){
-
+            listView.setOnItemClickListener(new OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
                     FragmentManager fm = getFragmentManager();
                     FragmentTransaction ft = fm.beginTransaction();
-
                     DeviceFragment d = DeviceFragment.newInstance(room.getId(), room.getDevice(position).toString());
                     ft.add(d, "tag");
                     ft.commit();                    
                 }
-                
             });
             return v;
         }
     }
 
 
-    public static class DeviceFragment extends android.support.v4.app.DialogFragment {
-        Room room;
-        Device device;
+    /**
+     * This DialogFragment class lists/shows all the controls of a device
+     * using a AlertDialog.
+     */
+    public static class DeviceFragment extends DialogFragment {
+        private Room room;
+        private Device device;
 
         static DeviceFragment newInstance(String roomId, String deviceId) {
             DeviceFragment f = new DeviceFragment();
@@ -340,7 +350,7 @@ public class ActivityMain extends FragmentActivity {
         @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            LinearLayout outerLayout = new LinearLayout(this.getActivity());
+            LinearLayout outerLayout = new LinearLayout(getActivity());
             outerLayout.setOrientation(LinearLayout.VERTICAL);
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
@@ -350,8 +360,8 @@ public class ActivityMain extends FragmentActivity {
                 // Use the Builder class for convenient dialog construction
                 builder.setTitle(device.getName());
 
-                ScrollView sw = new ScrollView(this.getActivity());
-                LinearLayout ll = new LinearLayout(this.getActivity());
+                ScrollView sw = new ScrollView(getActivity());
+                LinearLayout ll = new LinearLayout(getActivity());
                 ll.setOrientation(LinearLayout.VERTICAL);
                 ll.setPadding(16, 0, 16, 0);
                 for (Control control : device.getControls().values()) {

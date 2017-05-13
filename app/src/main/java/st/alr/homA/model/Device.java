@@ -11,6 +11,9 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+/**
+ * Class Device keeps all the controls in a device.
+ */
 public class Device implements Comparable<Device> {
     private String id;
     private String name;
@@ -43,7 +46,6 @@ public class Device implements Comparable<Device> {
     public void moveToRoom(final String roomname) {
         final Device device = this;
         Runnable r  = new Runnable() {
-            
             @Override
             public void run() {
                 if (room != null && room.getId().equals(roomname)) // Don't move if the device is already in the target room. Also prevents https://github.com/binarybucks/homA/issues/47
@@ -52,7 +54,6 @@ public class Device implements Comparable<Device> {
                 String cleanedName = (roomname != null) && !roomname.equals("") ? roomname : Defaults.VALUE_ROOM_NAME;
 
                 Room newRoom = App.getInstance().getRoom(cleanedName);
-
                 if (newRoom == null) {
                     newRoom = new Room(context, cleanedName);
                     App.getInstance().addRoom(newRoom);
@@ -65,7 +66,7 @@ public class Device implements Comparable<Device> {
             }
         };
         
-        if(Looper.myLooper() == Looper.getMainLooper())
+        if (Looper.myLooper() == Looper.getMainLooper())
             r.run();
         else
             new Handler(context.getMainLooper()).post(r);

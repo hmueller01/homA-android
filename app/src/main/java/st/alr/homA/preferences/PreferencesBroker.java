@@ -34,7 +34,6 @@ public class PreferencesBroker extends DialogPreference {
 
     private static EditText brokerUsername;
 
-    
     private EditText brokerSecuritySSLCaCrtPath;
 
     private Spinner brokerSecurity;
@@ -42,15 +41,12 @@ public class PreferencesBroker extends DialogPreference {
     private View brokerSecurityNoneOptions;
     private Spinner brokerAuth;
     
-    private LinearLayout securityWrapper;
+    //private LinearLayout securityWrapper;
     private LinearLayout brokerUsernameWrapper;
     private LinearLayout brokerPasswordWrapper;
-    private LinearLayout brokerAuthWrapper;
-    
-    
-    
-    
-    private enum RequireablePreferences { BROKER_HOST, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD, CACRT};
+    //private LinearLayout brokerAuthWrapper;
+
+    private enum RequireablePreferences { BROKER_HOST, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD, CACRT };
     
     Set<RequireablePreferences> okPreferences = Collections.synchronizedSet(EnumSet.noneOf(RequireablePreferences.class));
     Set<RequireablePreferences> requiredPreferences = Collections.synchronizedSet(EnumSet.of(RequireablePreferences.BROKER_HOST));
@@ -71,14 +67,11 @@ public class PreferencesBroker extends DialogPreference {
     protected View onCreateDialogView() {
         View root = super.onCreateDialogView();
 
-        securityWrapper = (LinearLayout) root.findViewById(R.id.securityWrapper);
+        //securityWrapper = (LinearLayout) root.findViewById(R.id.securityWrapper);
         brokerUsernameWrapper = (LinearLayout) root.findViewById(R.id.brokerUsernameWrapper);
         brokerPasswordWrapper = (LinearLayout) root.findViewById(R.id.brokerPasswordWrapper);
-        brokerAuthWrapper = (LinearLayout) root.findViewById(R.id.brokerAuthWrapper);
+        //brokerAuthWrapper = (LinearLayout) root.findViewById(R.id.brokerAuthWrapper);
 
-        
-
-        
         host = (EditText) root.findViewById(R.id.brokerHost);
         port = (EditText) root.findViewById(R.id.brokerPort);
 
@@ -93,7 +86,6 @@ public class PreferencesBroker extends DialogPreference {
         
         return root;
     }
-
 
     @Override
     protected void onBindDialogView(View view) {
@@ -117,9 +109,6 @@ public class PreferencesBroker extends DialogPreference {
         brokerSecuritySSLOptions.setVisibility(p.getInt(Defaults.SETTINGS_KEY_BROKER_SECURITY, Defaults.VALUE_BROKER_SECURITY_NONE) == Defaults.VALUE_BROKER_SECURITY_SSL_CUSTOMCACRT ? View.VISIBLE : View.GONE);
     }
 
-    
-    
-    
     @Override
     protected void showDialog(Bundle state) {
         super.showDialog(state);
@@ -131,17 +120,9 @@ public class PreferencesBroker extends DialogPreference {
         handleBrokerSecurity();
         handleCaCrt();        
 
-        
-               
-        
-
         conditionalyEnableConnectButton();
         conditionallyEnableDisconnectButton();
 
-        
-        
-        
-        
         TextWatcher hostPortWatcher = new TextWatcher() {
 
             @Override
@@ -164,7 +145,6 @@ public class PreferencesBroker extends DialogPreference {
         port.addTextChangedListener(hostPortWatcher);
 
         brokerSecurity.setOnItemSelectedListener(new OnItemSelectedListener() {
-
             @Override
             public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
                 handleBrokerSecurity();
@@ -176,9 +156,7 @@ public class PreferencesBroker extends DialogPreference {
             }
         });
  
-        
         brokerAuth.setOnItemSelectedListener(new OnItemSelectedListener() {
-
             @Override
             public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
                 handleBrokerAuth();
@@ -189,8 +167,8 @@ public class PreferencesBroker extends DialogPreference {
                 brokerAuth.setSelection(Defaults.VALUE_BROKER_AUTH_ANONYMOUS);
             }
         });
+        
         brokerUsername.addTextChangedListener(new TextWatcher() {
-            
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 handleUsername();
@@ -208,7 +186,6 @@ public class PreferencesBroker extends DialogPreference {
     
     private void handleCaCrt() {
         handleState(RequireablePreferences.CACRT, brokerSecuritySSLCaCrtPath.getText().toString().length() > 0);
-        
     }
 
     private void handleBrokerAuth() {
@@ -226,17 +203,14 @@ public class PreferencesBroker extends DialogPreference {
                 brokerPasswordWrapper.setVisibility(View.GONE);
                 requiredPreferences.remove(RequireablePreferences.BROKER_USERNAME);
                 break;
-
         }        
         conditionalyEnableConnectButton();
     }
-
-
+    
     @Override
     public void onClick(DialogInterface dialog, int which) {
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE: // Clicked connect
-
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
                 SharedPreferences.Editor editor = prefs.edit();
 
@@ -246,13 +220,8 @@ public class PreferencesBroker extends DialogPreference {
                 editor.putString(Defaults.SETTINGS_KEY_BROKER_PASSWORD, password.getText().toString());
                 editor.putInt(Defaults.SETTINGS_KEY_BROKER_SECURITY, brokerSecurity.getSelectedItemPosition());
                 editor.putInt(Defaults.SETTINGS_KEY_BROKER_AUTH, brokerAuth.getSelectedItemPosition());
-
                 editor.putString(Defaults.SETTINGS_KEY_BROKER_SECURITY_SSL_CA_PATH, brokerSecuritySSLCaCrtPath.getText().toString());
-                
-
-                editor.apply()
-                
-                ;
+                editor.apply();
                 Runnable r = new Runnable() {
                     
                     @Override
@@ -260,8 +229,7 @@ public class PreferencesBroker extends DialogPreference {
                         ServiceMqtt.getInstance().reconnect();                        
                     }
                 };
-                new Thread( r ).start();
-
+                new Thread(r).start();
                 break;
             case DialogInterface.BUTTON_NEGATIVE:
                 Runnable s = new Runnable() {
@@ -269,20 +237,18 @@ public class PreferencesBroker extends DialogPreference {
                     @Override
                     public void run() {
                         ServiceMqtt.getInstance().disconnect(true);
-                        
                     }
                 };
-                new Thread( s ).start();
+                new Thread(s).start();
         }
         super.onClick(dialog, which);
     }
     
     private void handleState(RequireablePreferences p, boolean ok) {
-        if(ok)
+        if (ok)
             okPreferences.add(p);
         else
             okPreferences.remove(p);
-        
         conditionalyEnableConnectButton();
     }
 
@@ -293,6 +259,7 @@ public class PreferencesBroker extends DialogPreference {
             handleState(RequireablePreferences.BROKER_USERNAME, false);
         }
     }
+    
     private void handleHost() {
         try {
             handleState(RequireablePreferences.BROKER_HOST, host.getText().toString().length() > 0);
@@ -309,7 +276,6 @@ public class PreferencesBroker extends DialogPreference {
             handleState(RequireablePreferences.BROKER_PORT, false);
         }
     }
-    
     
     private void conditionalyEnableConnectButton() {
         View v = getDialog().findViewById(android.R.id.button1);
@@ -348,7 +314,6 @@ public class PreferencesBroker extends DialogPreference {
                 brokerSecurityNoneOptions.setVisibility(View.GONE);
                 requiredPreferences.add(RequireablePreferences.CACRT);
                 break;
-
             default:
                 brokerSecuritySSLOptions.setVisibility(View.GONE);
                 brokerSecurityNoneOptions.setVisibility(View.VISIBLE);
@@ -356,6 +321,5 @@ public class PreferencesBroker extends DialogPreference {
                 break;
         }
         conditionalyEnableConnectButton();
-
     }
 }

@@ -32,12 +32,12 @@ import st.alr.homA.support.RoomAdapter;
 public class App extends Application {
     private static App instance;
     private NotificationCompat.Builder notificationBuilder;
-    private static SharedPreferences sharedPreferences;
+    private SharedPreferences sharedPreferences;
     private RoomAdapter rooms;
-    private static HashMap<String, Device> devices;
+    private HashMap<String, Device> devices;
 
     private NotificationManager notificationManager;
-    private static Handler uiThreadHandler;
+    private Handler uiThreadHandler;
 
     @Override
     public void onCreate() {
@@ -125,11 +125,14 @@ public class App extends Application {
     }
 
     public static Device getDevice(String id) {
-        return devices.get(id);
+        if (instance == null)
+            return null;
+        return instance.devices.get(id);
     }
 
     public static void addDevice(Device device) {
-        devices.put(device.toString(), device);
+        if (instance != null)
+            instance.devices.put(device.toString(), device);
     }
 
     public static App getInstance() {
@@ -196,8 +199,17 @@ public class App extends Application {
         }
     }
 
+    public void cancelNotification() {
+    	notificationManager.cancelAll();
+    }
+
     @SuppressLint("HardwareIds")
     public static String getAndroidId() {
         return Secure.getString(instance.getContentResolver(), Secure.ANDROID_ID);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
     }
 }

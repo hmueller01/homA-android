@@ -9,33 +9,30 @@ import android.os.IBinder;
 import android.util.Log;
 
 public abstract class ServiceBindable extends Service {
-    protected boolean started;
-    protected ServiceBinder binder;
     private final String TAG  = "ServiceBindable";
+    protected boolean mStarted;
+    protected ServiceBinder mBinder;
     
     @Override
-    public void onCreate()
-    {
+    public void onCreate() {
         super.onCreate();
-        Log.v(this.TAG, "onCreate");
-        binder = new ServiceBinder(this);
+        Log.v(this.TAG, "onCreate()");
+        mBinder = new ServiceBinder(this);
     }
     
     abstract protected void onStartOnce();
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.v(this.TAG, "onBind");
-        if(!started) {
-            started = true;
+        Log.v(this.TAG, "onBind()");
+        if (!mStarted) {
+            mStarted = true;
             onStartOnce();
         }
-        return binder;
+        return mBinder;
     }
     
-    
-    public class ServiceBinder extends Binder
-    {
+    public class ServiceBinder extends Binder {
         private WeakReference<ServiceBindable> mService;
 
         public ServiceBinder(ServiceBindable serviceBindable) {
@@ -45,26 +42,27 @@ public abstract class ServiceBindable extends Service {
         public ServiceBindable getService() {
             return mService.get();
         }
+        
         public void close() {
             mService = null;
         }
     }
+    
     @Override
-    public void onDestroy()
-    {
-
-        if (binder != null) {
-            binder.close();
-            binder = null;
+    public void onDestroy() {
+        Log.v(this.TAG, "onDestroy()");
+        if (mBinder != null) {
+            mBinder.close();
+            mBinder = null;
         }
         super.onDestroy();
     }
     
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.v(this.TAG, "onStartCommand");
-        if(!started) {
-            started = true;
+        Log.v(this.TAG, "onStartCommand()");
+        if (!mStarted) {
+            mStarted = true;
             onStartOnce();
         }
         

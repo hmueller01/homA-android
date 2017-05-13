@@ -7,6 +7,9 @@ import java.util.HashMap;
 
 import st.alr.homA.support.ValueChangedObserver;
 
+/**
+ * Class Control keeps all the data of a control like id, device, topic, value and meta data.
+ */
 public class Control implements Comparable<Control> {
     private ValueChangedObserver observer;
     private Device device;

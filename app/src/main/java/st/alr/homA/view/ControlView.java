@@ -14,14 +14,11 @@ public abstract class ControlView {
     protected Control _control;
     protected Activity activity;
 
-
-
     public ControlView(Activity activity, int layoutRessource, int valueRessource, int nameRessource) {
         this.activity = activity;
         _layout = activity.getLayoutInflater().inflate(layoutRessource, null);
         _value = _layout.findViewById(valueRessource);
         _name = (TextView) _layout.findViewById(nameRessource);
-        
     }
 
     abstract public void setContent(String name, String value);
@@ -41,10 +38,8 @@ public abstract class ControlView {
                     @Override
                     public void run() {
                         setContent((Control) sender);
-
                     };
                 });
-
             }
         });
         setInteractionListener();

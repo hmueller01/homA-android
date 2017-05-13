@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import st.alr.homA.model.Quickpublish;
 import st.alr.homA.support.QuickpublishAdapter;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -43,7 +44,6 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
     private static boolean writeMode;
     private ListView listView;
     private static QuickpublishAdapter adapter;
-    private Menu menu;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,7 +61,6 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_nfc, menu);
-        this.menu = menu;
         return true;
     }
 
@@ -177,14 +176,13 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
 
     private NdefRecord createRecord(String text) {
         byte[] textBytes = text.getBytes();
-        NdefRecord recordNFC = NdefRecord.createExternal("st.alr.homa", "nfc", textBytes);
-        return recordNFC;
+        return NdefRecord.createExternal("st.alr.homa", "nfc", textBytes);
     }
         
     @Override
     protected void onNewIntent(Intent intent) {
         Log.v(this.toString(), "write mode: " + writeMode);
-        if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction()) && writeMode == true) {
+        if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction()) && writeMode) {
             Tag mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
             Log.v(this.toString(), "Detected tag: " + mytag.toString());
             Log.v(this.toString(), "techlist:" + mytag.getTechList());
@@ -211,14 +209,15 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
         if (f != null) {
             f.setText(message);            
         }
-    }    
+    }
 
     public static class AddDialog extends DialogFragment {
         TextView topicInput;
         TextView payloadInput;
         CheckBox retainedCheckbox;
 
-        private View getContentView() {
+        @SuppressLint("InflateParams")
+		private View getContentView() {
             View view = getActivity().getLayoutInflater().inflate(R.layout.preferences_quickpublish, null);
             topicInput = (TextView) view.findViewById(R.id.quickpublishTopicInput);
 
@@ -258,14 +257,12 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
                     .setTitle(getResources().getString(R.string.add))
                     .setView(getContentView())
                     .setNegativeButton(getResources().getString(R.string.preferencesLicensesDismiss), new DialogInterface.OnClickListener() {
-
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dismiss();
                         }
                     })
                     .setPositiveButton(getResources().getString(R.string.add), new DialogInterface.OnClickListener() {
-
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             adapter.add(new Quickpublish(topicInput.getText().toString(), topicInput.getText().toString(), payloadInput.getText().toString(), retainedCheckbox.isChecked()));
@@ -274,27 +271,23 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
                     });
             Dialog dialog = builder.create();
             dialog.setOnShowListener(new OnShowListener() {
-                
                 @Override
                 public void onShow(DialogInterface dialog) {
                     getDialog().findViewById(android.R.id.button1).setEnabled(false);
-                    
                 }
             });
             return dialog;
         }
-
     }
 
     public static class WriteDialog extends DialogFragment {
         TextView tv;
-        View view;
         NfcAdapter adapter;
         PendingIntent pendingIntent;
         IntentFilter writeTagFilters[];
-        Tag mytag;
 
-        private View getContentView(Bundle savedInstance) {
+        @SuppressLint("InflateParams")
+		private View getContentView(Bundle savedInstance) {
             Log.v(this.toString(), "getContentView: " + savedInstance);
             String savedMessage = savedInstance != null ? savedInstance.getString("savedMessage") : null;
             
@@ -341,8 +334,7 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
                             dismiss();
                         }
                     });
-            Dialog dialog = builder.create();
-            return dialog;
+            return builder.create();
         }
 
         public void setText(String text) {
@@ -379,5 +371,12 @@ public class ActivityQuickpublishNfc extends FragmentActivity {
             outState.putString("savedMessage", (String) tv.getText());
         }
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // free static variables to avoid leaking
+        adapter = null;
     }
 }

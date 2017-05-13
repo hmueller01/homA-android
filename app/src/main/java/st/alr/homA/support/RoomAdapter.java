@@ -1,17 +1,19 @@
 package st.alr.homA.support;
 
-import st.alr.homA.R;
-import st.alr.homA.model.Room;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import st.alr.homA.R;
+import st.alr.homA.model.Room;
+
 public class RoomAdapter extends MapAdapter<String, Room> {
     
-    public RoomAdapter(Context c) {
-        super(c);
+    public RoomAdapter(Context context) {
+        super(context);
     }
 
     @Override
@@ -19,39 +21,29 @@ public class RoomAdapter extends MapAdapter<String, Room> {
         return 0;
     }
 
-
-
     static class ViewHolder {
         public TextView title;
     }
-
     
-    @Override
+    @SuppressLint("InflateParams")
+	@Override
     public View getView(int position, View convertView, ViewGroup parent) {
-         
-
-        View rowView = convertView;
         ViewHolder holder;
 
-        if (rowView == null) {
+        if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            rowView = inflater.inflate(R.layout.row_layout, null);
+            convertView = inflater.inflate(R.layout.row_layout, null);
 
             holder = new ViewHolder();
-            holder.title = (TextView) rowView.findViewById(R.id.title);
-            rowView.setTag(holder);
+            holder.title = (TextView) convertView.findViewById(R.id.title);
+            convertView.setTag(holder);
         } else {
-            holder = (ViewHolder) rowView.getTag();
+            holder = (ViewHolder) convertView.getTag();
         }
 
         holder.title.setText(((Room) getItem(position)).getId());
         
-        return rowView;
-
+        return convertView;
     }
-
-    
-    
-
 
 }
