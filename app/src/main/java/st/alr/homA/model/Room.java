@@ -12,6 +12,7 @@ import android.util.Log;
  * Class Room keeps all the devices in a room.
  */
 public class Room implements Comparable<Room> {
+    private final String LOG_TAG = Room.class.getSimpleName();
     private String id;
     private DeviceAdapter devices;
     private Handler uiThreadHandler;
@@ -46,7 +47,7 @@ public class Room implements Comparable<Room> {
         Runnable r  = new Runnable() {
             @Override
             public void run() {
-                Log.v(this.toString(), "Adding " + device.getName() + " to " + room.getId());
+                Log.v(LOG_TAG, "addDevice: Adding " + device.getName() + " to " + room.getId());
                 devices.addItem(device);
             }
         };

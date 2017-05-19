@@ -33,15 +33,12 @@ public abstract class MapAdapter<K, T> extends BaseAdapter {
      }
 
     public synchronized void clearItems() {
-        this.map.clear();        
+        this.map.clear();
         reload();
     }
 
     public synchronized void reload() {
-
-        
         this.notifyDataSetChanged();
-
     }
 
     @Override

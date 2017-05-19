@@ -15,6 +15,7 @@ import android.util.Log;
  * Class Device keeps all the controls in a device.
  */
 public class Device implements Comparable<Device> {
+    private final String LOG_TAG = Device.class.getSimpleName();
     private String id;
     private String name;
     private Room room;
@@ -34,10 +35,11 @@ public class Device implements Comparable<Device> {
     }
 
     public void removeFromCurrentRoom() {
+        Log.v(LOG_TAG, "removeFromCurrentRoom: " + this.toString());
         if (room != null) {
             room.removeDevice(this);
             if (room.getDeviceCount() == 0) {
-                Log.v(toString(), "Room " + room.getId() + " is empty, removing it");
+                Log.v(LOG_TAG, "removeFromCurrentRoom: Room " + room.getId() + " is empty, removing it");
                 App.getInstance().removeRoom(room);
             }
         }
