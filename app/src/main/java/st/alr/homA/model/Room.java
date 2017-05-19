@@ -77,7 +77,7 @@ public class Room implements Comparable<Room> {
     }
     
     public int getDeviceCount(){
-        return devices.getCount();
+        return devices.getItemCount();
     }
     
     public DeviceAdapter getAdapter(){

@@ -77,7 +77,7 @@ public class App extends Application {
     }
 
     public Integer getRoomCount() {
-        return rooms.getCount();
+        return rooms.getItemCount();
     }
 
     public void addRoom(final Room room) {
