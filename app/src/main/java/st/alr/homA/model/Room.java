@@ -3,6 +3,7 @@ package st.alr.homA.model;
 
 import st.alr.homA.support.DeviceAdapter;
 import st.alr.homA.support.ValueSortedMap;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,28 +13,28 @@ import android.util.Log;
  * Class Room keeps all the devices in a room.
  */
 public class Room implements Comparable<Room> {
-    private String id;
-    private DeviceAdapter devices;
-    private Handler uiThreadHandler;
+    private String mId;
+    private DeviceAdapter mDevices;
+    private Handler mUiThreadHandler;
 
     public Room(Context context, String id) {
-        this.id = id;
-        uiThreadHandler = new Handler(context.getMainLooper());
+        mId = id;
+        mUiThreadHandler = new Handler(context.getMainLooper());
 
-        devices = new DeviceAdapter(context);
-        devices.setMap(new ValueSortedMap<String, Device>());
+        mDevices = new DeviceAdapter(context);
+        mDevices.setMap(new ValueSortedMap<String, Device>());
     }
 
     public String getId() {
-        return id;
+        return mId;
     }
 
     public Device getDevice(String id) {
-        return (Device) devices.getItem(id);
+        return (Device) mDevices.getItem(id);
     }
     
     public Device getDevice(int position) {
-        return (Device) devices.getItem(position);
+        return (Device) mDevices.getItem(position);
     }
 
     @Override
@@ -46,29 +47,23 @@ public class Room implements Comparable<Room> {
         Runnable r  = new Runnable() {
             @Override
             public void run() {
-                Log.v(this.toString(), "Adding " + device.getName() + " to " + room.getId());
-                devices.addItem(device);
+                Log.v(this.toString(), "Adding " + device.getName() + " to room " + room.getId());
+                mDevices.addItem(device);
             }
         };
-        
-        if (Looper.myLooper() == Looper.getMainLooper())
-        	r.run();
-        else
-            uiThreadHandler.post(r);
+        runOnUiThread(r);
     }
 
     public void removeDevice(final Device device) {
+        final Room room = this;
         Runnable r  = new Runnable() {
             @Override
             public void run() {
-                devices.removeItem(device);
+                Log.v(this.toString(), "Removing " + device.getName() + " from room " + room.getId());
+                mDevices.removeItem(device);
             }
         };
-        
-        if(Looper.myLooper() == Looper.getMainLooper())
-               r.run();
-        else
-            uiThreadHandler.post(r);
+        runOnUiThread(r);
     }
 
     @Override
@@ -77,10 +72,17 @@ public class Room implements Comparable<Room> {
     }
     
     public int getDeviceCount(){
-        return devices.getItemCount();
+        return mDevices.getItemCount();
     }
     
     public DeviceAdapter getAdapter(){
-        return devices;
+        return mDevices;
+    }
+
+    private void runOnUiThread(Runnable r) {
+        if (Looper.myLooper() == Looper.getMainLooper())
+            r.run();
+        else
+            mUiThreadHandler.post(r);
     }
 }

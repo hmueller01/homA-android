@@ -12,13 +12,13 @@ public abstract class ControlView {
     protected View _value;
     protected View _layout;
     protected Control _control;
-    protected Activity activity;
+    private Activity mActivity;
 
     public ControlView(Activity activity, int layoutRessource, int valueRessource, int nameRessource) {
-        this.activity = activity;
+        mActivity = activity;
         _layout = activity.getLayoutInflater().inflate(layoutRessource, null);
         _value = _layout.findViewById(valueRessource);
-        _name = (TextView) _layout.findViewById(nameRessource);
+        _name = _layout.findViewById(nameRessource);
     }
 
     abstract public void setContent(String name, String value);
@@ -34,7 +34,7 @@ public abstract class ControlView {
         control.setValueChangedObserver(new ValueChangedObserver() {
             @Override
             public void onValueChange(final Object sender, Object value) {
-                activity.runOnUiThread(new Runnable() {
+                mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         setContent((Control) sender);

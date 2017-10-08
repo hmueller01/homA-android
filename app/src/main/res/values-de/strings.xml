@@ -36,8 +36,8 @@
     <string name="connectivityDisconnected">"Getrennt"</string>
     <string name="connectivityDisconnectedUserDisconnect">"Getrennt: Benutzer"</string>
     <string name="connectivityDisconnectedDataDisabled">"Getrennt: Keine Verbindung"</string>
-        <string name="nfcWriteDialogTagReadOnly">"Tag ist schreibgeschützt"</string>
-        <string name="nfcWriteDialogTagFormatedAndWrote">"Tag erfolgreich formatiert und beschrieben"</string>
+    <string name="nfcWriteDialogTagReadOnly">"Tag ist schreibgeschützt"</string>
+    <string name="nfcWriteDialogTagFormatedAndWrote">"Tag erfolgreich formatiert und beschrieben"</string>
     <string name="nfcWriteDialogTagFailedToFormat">"Tag konnte nicht formatiert werden"</string>
     <string name="nfcWriteDialogTagFailedToWrite">"Tag konnte nicht beschrieben werden"</string>
     <string name="nfcWriteDialogTagNoNDEFSupport">"Tag unterstützt kein NDEF Format"</string>
@@ -45,12 +45,10 @@
     <string name="nfcWriteDialogTagMessageSizeIs">", Nachrichtengröße ist "</string>
     <string name="nfcWriteDialogTagNoContent">"Keine Nachricht zum schreiben vorhanden"</string>
     <string name="nfcWriteDialogTagSuccess">"Tag erfolgreich beschrieben"</string>
-    
-    
     <string name="nfcWrite">"Beschreiben"</string>
     <string name="nfcStartRecording">"Aufzeichnung starten"</string>
     <string name="nfcStopRecording">"Aufzeichnung stoppen"</string>
-        <string name="actionModeOneSelected">"Ein Element ausgewählt"</string>
+    <string name="actionModeOneSelected">"Ein Element ausgewählt"</string>
     <string name="actionModeMoreSelected">"Elemente ausgewählt"</string>
     <string name="actionModeDiscardSelected">"Löschen"</string>
     <string name="add">"Hinzufügen"</string>
@@ -63,6 +61,8 @@
     <string name="preferencesConnectionSecurity">"Verschlüsselung"</string>
     
     <string name="error">"Fehler"</string>
+
+    <string name="read_permission_missing">"Speicher Berechtigung nicht erteilt"</string>
 
     <string-array name="connect_options_security">
         <item>Keine</item>

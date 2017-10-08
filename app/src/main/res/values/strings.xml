@@ -59,7 +59,10 @@
     <string name="preferencesBrokerUsername">"Username (Broker authentication)"</string>
     <string name="preferencesConnectionSecurity">"Connection security"</string>
     <string name="preferencesBrokerPassword">"Password"</string>
+
     <string name="error">"Error"</string>
+
+    <string name="read_permission_missing">"Read permission not granted"</string>
 
     <string-array name="connect_options_security">
         <item>None</item>

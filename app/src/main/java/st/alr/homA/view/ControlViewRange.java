@@ -17,7 +17,7 @@ public class ControlViewRange extends ControlView {
         int max;
         try {
             max = Integer.parseInt(control.getMeta("max", "255"));
-        }catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             max = 255;
         }
         ((SeekBar) _value).setMax(max);
@@ -32,10 +32,10 @@ public class ControlViewRange extends ControlView {
         int intValue;
         try {
             intValue = Integer.parseInt(value);
-        }catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             try {
                 intValue = Math.round(Float.parseFloat(value));
-            }catch (NumberFormatException f) {
+            } catch (NumberFormatException f) {
                 intValue = 0; // Value is not an int nor a float. Let's quit guessing. 
             }
         }
@@ -46,7 +46,6 @@ public class ControlViewRange extends ControlView {
 
     @Override
     protected void setInteractionListener() {
-
         ((SeekBar) _value).setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

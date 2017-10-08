@@ -5,6 +5,7 @@ import st.alr.homA.App;
 import st.alr.homA.support.Defaults;
 import st.alr.homA.support.ValueChangedObserver;
 import st.alr.homA.support.ValueSortedMap;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,30 +16,42 @@ import android.util.Log;
  * Class Device keeps all the controls in a device.
  */
 public class Device implements Comparable<Device> {
-    private String id;
-    private String name;
-    private Room room;
-    private ValueSortedMap<String, Control> controls;
-    private ValueChangedObserver controlAddedObserver;
-    private Context context;
+    private String mId;
+    private String mName;
+    // TODO: Mr - Test for control value in room view
+    private String mDeviceId; // in case of new control value this holds mId of device
+    private Room mRoom;
+    private ValueSortedMap<String, Control> mControls;
+    private ValueChangedObserver mControlAddedObserver;
+    private Context mContext;
+    private final Handler mUiThreadHandler;
 
     public Device(String id, Context context) {
-        this.id = id;
-        this.name = null;
-        this.controls = new ValueSortedMap<>();
-        this.context = context;
+        mId = id;
+        mName = null;
+        mDeviceId = null;
+        mControls = new ValueSortedMap<>();
+        mContext = context;
+        mUiThreadHandler = new Handler(context.getMainLooper());
+    }
+
+    // TODO: Mr - Test for control value in room view
+    // Used to view a control on the device list view
+    public Device(String deviceId, String controlName, Context context) {
+        this(controlName, context); // must be called at first, otherwise mDeviceId gets lost!
+        mDeviceId = deviceId;
     }
 
     public Room getRoom() {
-        return room;
+        return mRoom;
     }
 
     public void removeFromCurrentRoom() {
-        if (room != null) {
-            room.removeDevice(this);
-            if (room.getDeviceCount() == 0) {
-                Log.v(toString(), "Room " + room.getId() + " is empty, removing it");
-                App.getInstance().removeRoom(room);
+        if (mRoom != null) {
+            mRoom.removeDevice(this);
+            if (mRoom.getDeviceCount() == 0) {
+                Log.v(toString(), "Room " + mRoom.getId() + " is empty, removing it");
+                App.getInstance().removeRoom(mRoom);
             }
         }
     }
@@ -48,66 +61,90 @@ public class Device implements Comparable<Device> {
         Runnable r  = new Runnable() {
             @Override
             public void run() {
-                if (room != null && room.getId().equals(roomname)) // Don't move if the device is already in the target room. Also prevents https://github.com/binarybucks/homA/issues/47
+                if (mRoom != null && mRoom.getId().equals(roomname)) // Don't move if the device is already in the target mRoom. Also prevents https://github.com/binarybucks/homA/issues/47
                     return;
 
                 String cleanedName = (roomname != null) && !roomname.equals("") ? roomname : Defaults.VALUE_ROOM_NAME;
 
                 Room newRoom = App.getInstance().getRoom(cleanedName);
                 if (newRoom == null) {
-                    newRoom = new Room(context, cleanedName);
+                    newRoom = new Room(mContext, cleanedName);
                     App.getInstance().addRoom(newRoom);
                 }
 
                 removeFromCurrentRoom();
                 newRoom.addDevice(device);
 
-                room = newRoom;
+                mRoom = newRoom;
             }
         };
-        
-        if (Looper.myLooper() == Looper.getMainLooper())
-            r.run();
-        else
-            new Handler(context.getMainLooper()).post(r);
+        runOnUiThread(r);
+    }
+
+    public String getId() {
+        return mId;
     }
 
     public String getName() {
-        return (name != null) && !name.equals("") ? name : id;
+        return (mName != null) && !mName.equals("") ? mName : mId;
     }
 
     public void setName(String name) {
-        //this.room.removeDevice(this);
-        this.name = name;  
-        //this.room.addDevice(this);
+        //mRoom.removeDevice(this);
+        mName = name;
+        //mRoom.addDevice(this);
+    }
+
+    // TODO: Mr - Test for control value in room view
+    public boolean isControl() {
+        return (mDeviceId != null);
+    }
+
+    public String getDeviceId() {
+        if (isControl())
+            return mDeviceId;
+        else
+            return mId;
+    }
+
+    public String getDeviceName() {
+        if (isControl()) {
+            Device device = App.getDevice(mDeviceId);
+            if (device != null)
+                return device.getName();
+            else
+                return "<device not found>";
+        } else {
+            return getName();
+        }
     }
 
     public Control getControlWithId(String id) {
-        return controls.get(id);
+        return mControls.get(id);
     }
 
     public void addControl(Control control) {
-        controls.put(control.toString(), control);
-        if (controlAddedObserver != null) {
-            controlAddedObserver.onValueChange(this, control);
+        mControls.put(control.toString(), control);
+        if (mControlAddedObserver != null) {
+            mControlAddedObserver.onValueChange(this, control);
         }
     }
 
     public void setControlAddedObserver(ValueChangedObserver observer) {
-        controlAddedObserver = observer;
+        mControlAddedObserver = observer;
     }
 
     public void removeControlAddedObserver() {
-        controlAddedObserver = null;
+        mControlAddedObserver = null;
     }
 
     public ValueSortedMap<String, Control> getControls() {
-        return controls;
+        return mControls;
     }
 
     @Override
     public String toString() {
-        return id;
+        return mId;
     }
 
     @Override
@@ -123,7 +160,14 @@ public class Device implements Comparable<Device> {
     }
 
     public void sortControls() {
-        this.controls.sortDataset();
+        mControls.sortDataset();
+    }
+
+    private void runOnUiThread(Runnable r) {
+        if (Looper.myLooper() == Looper.getMainLooper())
+            r.run();
+        else
+            mUiThreadHandler.post(r);
     }
 
 }

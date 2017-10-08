@@ -1,51 +1,57 @@
 
 package st.alr.homA;
 
-import st.alr.homA.model.Control;
-import st.alr.homA.model.Device;
-import st.alr.homA.model.Room;
-import st.alr.homA.services.ServiceMqtt;
-import st.alr.homA.support.Defaults;
-import st.alr.homA.support.Events;
-import st.alr.homA.support.ValueSortedMap;
-import st.alr.homA.view.ControlView;
-import st.alr.homA.view.ControlViewRange;
-import st.alr.homA.view.ControlViewSwitch;
-import st.alr.homA.view.ControlViewText;
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.DividerItemDecoration;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+
 import de.greenrobot.event.EventBus;
+import st.alr.homA.model.Control;
+import st.alr.homA.model.Device;
+import st.alr.homA.model.Room;
+import st.alr.homA.services.ServiceMqtt;
+import st.alr.homA.support.Defaults;
+import st.alr.homA.support.Events;
+import st.alr.homA.support.ItemClickSupport;
+import st.alr.homA.support.ValueSortedMap;
+import st.alr.homA.view.ControlView;
+import st.alr.homA.view.ControlViewRange;
+import st.alr.homA.view.ControlViewSwitch;
+import st.alr.homA.view.ControlViewText;
 
 public class ActivityMain extends FragmentActivity {
     private DrawerLayout mDrawerLayout;
-    private ListView mDrawerList;
+    private RecyclerView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;   
-    RelativeLayout disconnectedLayout;
-    LinearLayout connectedLayout;
-    private CharSequence title;
+    RelativeLayout mDisconnectedLayout;
+    LinearLayout mConnectedLayout;
+    private CharSequence mTitle;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -81,13 +87,13 @@ public class ActivityMain extends FragmentActivity {
     private void updateViewVisibility() {
         if (ServiceMqtt.getState() == Defaults.State.ServiceMqtt.CONNECTED) {
             Log.v(this.toString(), "Showing connected layout");
-            connectedLayout.setVisibility(View.VISIBLE);
-            disconnectedLayout.setVisibility(View.INVISIBLE);
+            mConnectedLayout.setVisibility(View.VISIBLE);
+            mDisconnectedLayout.setVisibility(View.INVISIBLE);
             setActionbarTitle();
         } else {
             Log.v(this.toString(), "Showing disconnected layout");
-            connectedLayout.setVisibility(View.INVISIBLE);
-            disconnectedLayout.setVisibility(View.VISIBLE);
+            mConnectedLayout.setVisibility(View.INVISIBLE);
+            mDisconnectedLayout.setVisibility(View.VISIBLE);
             setActionbarTitleAppname();
         }
     }
@@ -130,24 +136,27 @@ public class ActivityMain extends FragmentActivity {
         setContentView(R.layout.activity_main);
         
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        mDrawerList = (RecyclerView) findViewById(R.id.left_drawer);
 
-        disconnectedLayout = (RelativeLayout) findViewById(R.id.disconnectedLayout);
-        connectedLayout = (LinearLayout) findViewById(R.id.connectedLayout);
+        mDisconnectedLayout = (RelativeLayout) findViewById(R.id.disconnectedLayout);
+        mConnectedLayout = (LinearLayout) findViewById(R.id.connectedLayout);
 
         updateViewVisibility();
+        setActionbarTitleAppname();
 
         // Set the adapter for the list view
         mDrawerList.setAdapter(App.getInstance().getRoomListAdapter());
-        setActionbarTitleAppname();
-
-        mDrawerList.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectRoom(App.getInstance().getRoom(position));
-                mDrawerLayout.closeDrawer(mDrawerList);
-            }
-        });
+        // Set layout manager to position the items
+        mDrawerList.setLayoutManager(new LinearLayoutManager(this));
+        ItemClickSupport.addTo(mDrawerList).setOnItemClickListener(
+                new ItemClickSupport.OnItemClickListener() {
+                    @Override
+                    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                        selectRoom(App.getInstance().getRoom(position));
+                        mDrawerLayout.closeDrawer(mDrawerList);
+                    }
+                }
+        );
 
         mDrawerToggle = new ActionBarDrawerToggle(this,                  /* host Activity */
                 mDrawerLayout,         /* DrawerLayout object */
@@ -177,6 +186,18 @@ public class ActivityMain extends FragmentActivity {
         Room selected =  App.getInstance().getRoom(PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""));
         if (selected != null)
             selectRoom(selected);
+
+        // check if we have permission to read from external storage
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)	!=
+                PackageManager.PERMISSION_GRANTED) {
+            // permission is not granted, ask for permission and wait for
+            // callback method onRequestPermissionsResult gets the result of the request.
+            // PERMISSION_REQUEST_READ_EXTERNAL_STORAGE is an app-defined int constant.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    Defaults.PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+        }
         
         EventBus.getDefault().register(this);
     }
@@ -185,20 +206,20 @@ public class ActivityMain extends FragmentActivity {
         String appname = getString(R.string.appName);
         String abtitle = (String) getActionBar().getTitle();
         if (abtitle != null && !abtitle.equals(appname))
-            title = abtitle;
+            mTitle = abtitle;
         getActionBar().setTitle(appname);
     }
 
     protected void setActionbarTitle(String t){
         Log.v(this.toString(), "setActionbarTitle with parameter to to " + t);
         getActionBar().setTitle(t);
-        title = t;
+        mTitle = t;
     }
     
     protected void setActionbarTitle() {
-        Log.v(this.toString(), "setActionbarTitle to " + title);
-        if (title != null)
-            getActionBar().setTitle(title);
+        Log.v(this.toString(), "setActionbarTitle to " + mTitle);
+        if (mTitle != null)
+            getActionBar().setTitle(mTitle);
         else 
             setActionbarTitleAppname();
     }
@@ -230,20 +251,17 @@ public class ActivityMain extends FragmentActivity {
     @Override
     protected void onDestroy() {
         // disconnect from MQTT broker, if app is terminated
-        ServiceMqtt.getInstance().disconnect(false);
+        stopService(new Intent(this, ServiceMqtt.class));
         App.getInstance().cancelNotification();
-        EventBus.getDefault().unregister(this);
         // TODO: Still sudden app restarts, reason unknown.
         super.onDestroy();
     }
 
-
-    /**
-     * This Fragment class lists/shows all the devices of a room.
+    /** ***************************************************************************
+     * This Fragment class lists/shows all the devices in a room.
      */
     public static class RoomFragment extends Fragment {
-        private Room room;
-        private ListView listView;
+        private Room mRoom;
         
         public static RoomFragment newInstance(Room r) {
             RoomFragment f = new RoomFragment();            
@@ -257,8 +275,8 @@ public class ActivityMain extends FragmentActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            room = App.getInstance().getRoom(getArguments().getString("roomId"));
-            if (room == null) {
+            mRoom = App.getInstance().getRoom(getArguments().getString("roomId"));
+            if (mRoom == null) {
                 getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
                 Log.e(this.toString(), "Clearing fragment for removed room");
             }
@@ -268,33 +286,40 @@ public class ActivityMain extends FragmentActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             View v = inflater.inflate(R.layout.fragment_room, container, false);
-            if (room == null)
+            if (mRoom == null)
                 return v;
-            
-            listView = (ListView) v.findViewById(R.id.devices_list);
-            listView.setAdapter(room.getAdapter());
-            listView.setOnItemClickListener(new OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
-                    FragmentManager fm = getFragmentManager();
-                    FragmentTransaction ft = fm.beginTransaction();
-                    DeviceFragment d = DeviceFragment.newInstance(room.getId(), room.getDevice(position).toString());
-                    ft.add(d, "tag");
-                    ft.commit();                    
-                }
-            });
+
+            RecyclerView listView = v.findViewById(R.id.devices_list);
+            listView.setAdapter(mRoom.getAdapter());
+            // Set layout manager to position the items
+            listView.setLayoutManager(new LinearLayoutManager(getContext()));
+            RecyclerView.ItemDecoration itemDecoration = new
+                    DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL);
+            listView.addItemDecoration(itemDecoration);
+            ItemClickSupport.addTo(listView).setOnItemClickListener(
+                    new ItemClickSupport.OnItemClickListener() {
+                        @Override
+                        public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                            FragmentManager fm = getFragmentManager();
+                            FragmentTransaction ft = fm.beginTransaction();
+                            DeviceFragment df = DeviceFragment.newInstance(mRoom.getId(), mRoom.getDevice(position).getDeviceId());
+                            ft.add(df, "tag");
+                            ft.commit();
+                        }
+                    }
+            );
             return v;
         }
     }
 
 
-    /**
+    /** ***************************************************************************
      * This DialogFragment class lists/shows all the controls of a device
-     * using a AlertDialog.
+     * using an AlertDialog.
      */
     public static class DeviceFragment extends DialogFragment {
-        private Room room;
-        private Device device;
+        private Room mRoom;
+        private Device mDevice;
 
         static DeviceFragment newInstance(String roomId, String deviceId) {
             DeviceFragment f = new DeviceFragment();
@@ -324,26 +349,24 @@ public class ActivityMain extends FragmentActivity {
             // In this case there is nothing left that we can save.
             // Restoring the fragment from the bundle will likely return nothing
             // (see setArgs).
-            if (device != null && room != null) {
-                outState.putString("roomId", room.getId());
-                outState.putString("deviceId", device.toString());
+            if (mDevice != null && mRoom != null) {
+                outState.putString("roomId", mRoom.getId());
+                outState.putString("deviceId", mDevice.toString());
             }
         }
 
         private boolean setArgs(Bundle savedInstanceState) {
-            Bundle b;
-            if (savedInstanceState != null)
-                b = savedInstanceState;
-            else
+            Bundle b = savedInstanceState;
+
+            if (b == null)
                 b = getArguments();
-            room = App.getInstance().getRoom(b.getString("roomId"));
-            if (room == null) {
+
+            mRoom = App.getInstance().getRoom(b.getString("roomId"));
+            if (mRoom == null) {
                 Log.e(this.toString(), "DeviceFragment for phantom room: " + b.getString("roomId"));
                 return false;
             }
-
-            device = room.getDevice(b.getString("deviceId"));
-
+            mDevice = mRoom.getDevice(b.getString("deviceId"));
             return true;
         }
 
@@ -358,13 +381,13 @@ public class ActivityMain extends FragmentActivity {
                 EventBus.getDefault().register(this);
 
                 // Use the Builder class for convenient dialog construction
-                builder.setTitle(device.getName());
+                builder.setTitle(mDevice.getName());
 
                 ScrollView sw = new ScrollView(getActivity());
                 LinearLayout ll = new LinearLayout(getActivity());
                 ll.setOrientation(LinearLayout.VERTICAL);
                 ll.setPadding(16, 0, 16, 0);
-                for (Control control : device.getControls().values()) {
+                for (Control control : mDevice.getControls().values()) {
                     ll.addView(getControlView(control).attachToControl(control).getLayout());
                 }
                 sw.addView(ll);
@@ -392,7 +415,6 @@ public class ActivityMain extends FragmentActivity {
             } else {
                 v = new ControlViewText(getActivity());
             }
-
             return v;
         }
 
@@ -403,7 +425,7 @@ public class ActivityMain extends FragmentActivity {
 
             ValueSortedMap<String, Control> controls;
 
-            if ((device != null) && ((controls = device.getControls()) != null))
+            if ((mDevice != null) && ((controls = mDevice.getControls()) != null))
                 for (Control control : controls.values())
                     control.removeValueChangedObserver();
 

@@ -1,5 +1,6 @@
 package st.alr.homA.services;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -8,15 +9,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -208,10 +213,28 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
     //
     private javax.net.ssl.SSLSocketFactory getSSLSocketFactory() throws CertificateException,
             KeyStoreException, NoSuchAlgorithmException, IOException, KeyManagementException {
+
+        // check if we have permission to read from external storage
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)	!=
+                PackageManager.PERMISSION_GRANTED) {
+            // permission is not granted, inform user, as asking for permission is
+            // not possible in a service.
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), R.string.read_permission_missing, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         // From https://www.washington.edu/itconnect/security/ca/load-der.crt
-        InputStream caInput = new BufferedInputStream(new FileInputStream(
-                sharedPreferences.getString(Defaults.SETTINGS_KEY_BROKER_SECURITY_SSL_CA_PATH, "")));
+        String caFile = Environment.getExternalStorageDirectory().getAbsolutePath() +
+                "/" + sharedPreferences.getString(Defaults.SETTINGS_KEY_BROKER_SECURITY_SSL_CA_PATH, "");
+        InputStream is = new FileInputStream(caFile);
+        InputStream caInput = new BufferedInputStream(is);
         java.security.cert.Certificate ca;
         try {
             ca = cf.generateCertificate(caInput);
@@ -261,7 +284,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
             }
 
             if (getBrokerSecurityMode() == Defaults.VALUE_BROKER_SECURITY_SSL_CUSTOMCACRT)
-                options.setSocketFactory(this.getSSLSocketFactory());
+                options.setSocketFactory(getSSLSocketFactory());
 
             //setWill(options);
             options.setKeepAliveInterval(keepAliveSeconds);
@@ -436,7 +459,8 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         // disconnect immediately
         disconnect(false);
 
-        changeState(Defaults.State.ServiceMqtt.DISCONNECTED);
+        // Clean up static data to avoid leaking
+        instance = null;
 
         super.onDestroy();
     }
@@ -628,7 +652,6 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MQTT");
         wl.acquire();
 
-        //
         // I'm assuming that all messages I receive are being sent as strings
         // this is not an MQTT thing - just me making as assumption about what
         // data I will be receiving - your app doesn't have to send/receive
@@ -658,6 +681,8 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         if (splitTopic[3].equals("controls")) {
             String controlName = splitTopic[4];
             Control control = device.getControlWithId(controlName);
+            // TODO: Mr - Test for control value in room view
+            Device deviceControl = App.getDevice(controlName);
 
             if (control == null) {
                 control = new Control(controlName, device);
@@ -665,10 +690,23 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
             }
             if (splitTopic.length == 5) { // Control value
                 control.setValue(payloadStr);
-            } else if (splitTopic.length == 7) { // Control meta
+            } else if ((splitTopic.length == 7) &&
+                    (splitTopic[5].equals("meta"))) { // Control meta
+                // TODO: Mr - Test for control value in room view
+                if (splitTopic[6].equals("onRoom")) { // view control on room view
+                    // Ensure the device for the message exists
+                    if (deviceControl == null) {
+                        deviceControl = new Device(deviceId, controlName, this);
+                        deviceControl.addControl(control);
+                        App.addDevice(deviceControl);
+                    }
+                    deviceControl.moveToRoom(payloadStr);
+                }
                 control.setMeta(splitTopic[6], payloadStr);
             }
         } else if (splitTopic[3].equals("meta")) {
+            //  /devices/$uniqueDeviceId/meta/$key
+            // 0/      1/              2/   3/   4
             device.setMeta(splitTopic[4], payloadStr); // Device Meta
         }
 
@@ -679,7 +717,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         // we're finished - if the phone is switched off, it's okay for the CPU
         // to sleep now
         wl.release();
-    }    
+    }
 
     public class PingSender extends BroadcastReceiver {
         @Override

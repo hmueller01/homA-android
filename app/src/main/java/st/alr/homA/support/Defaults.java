@@ -38,7 +38,6 @@ public class Defaults {
     public static final String INTENT_ACTION_PUBLICH_PING = "st.alr.mqttitude.intent.PUB_PING";
     public static final String SETTINGS_KEY_TOPIC_SUBSCRIBE = "mqttitude/+/+";
 
-    
     public static final String SETTINGS_KEY_BROKER_SECURITY = "brokerSecurity";
     public static final String SETTINGS_KEY_BROKER_SECURITY_SSL_CA_PATH = "brokerSecuritySslCaPath";
     
@@ -47,6 +46,7 @@ public class Defaults {
     public static final int VALUE_BROKER_SECURITY_NONE = 0;
     public static final int VALUE_BROKER_SECURITY_SSL = 1;
     public static final int VALUE_BROKER_SECURITY_SSL_CUSTOMCACRT = 2;
+
     public static class State {
         public static enum ServiceMqtt {
             INITIAL, CONNECTING, CONNECTED, DISCONNECTING, DISCONNECTED_WAITINGFORINTERNET, DISCONNECTED, DISCONNECTED_USERDISCONNECT, DISCONNECTED_DATADISABLED, DISCONNECTED_ERROR
@@ -80,4 +80,9 @@ public class Defaults {
             return App.getInstance().getString(id);
         }
     }
+
+    // Permission Codes
+    public static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
+    public static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 2;
+
 }

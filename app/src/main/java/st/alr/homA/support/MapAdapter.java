@@ -1,27 +1,38 @@
 
 package st.alr.homA.support;
 
-import java.util.Collection;
-
-import st.alr.homA.R;
-import st.alr.homA.model.Control;
-import st.alr.homA.model.Device;
-import st.alr.homA.view.ViewHolderDevice;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.Collection;
+
+import st.alr.homA.R;
+import st.alr.homA.model.Control;
+import st.alr.homA.model.Device;
+import st.alr.homA.model.Room;
+import st.alr.homA.view.ViewHolderControlRange;
+import st.alr.homA.view.ViewHolderControlSwitch;
+import st.alr.homA.view.ViewHolderControlText;
+import st.alr.homA.view.ViewHolderDevice;
+import st.alr.homA.view.ViewHolderRoom;
+
 public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     protected ValueSortedMap<K, T> mMap;
     protected LayoutInflater mInflater;
-    
-    private final int DEVICE = 0, CONTROL = 1;
+    private final Handler mUiThreadHandler;
+
+    private final int ROOM = 0, DEVICE = 1,
+            CONTROL_SWITCH = 2, CONTROL_RANGE = 3, CONTROL_TEXT = 4;
     
     public MapAdapter(Context context) {
         mMap = new ValueSortedMap<>();
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        mUiThreadHandler = new Handler(context.getMainLooper());
     }
 
     @SuppressWarnings("unchecked")
@@ -54,14 +65,27 @@ public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView
     // Returns the view type of the item at position for the purposes of view recycling.
     @Override
     public int getItemViewType(int position) {
-        if (mMap.get(position) instanceof String) {
-            return DEVICE;
-        } else if (mMap.get(position) instanceof Control) {
-            return CONTROL;
+        if (mMap.get(position) instanceof Room) {
+            return ROOM;
+        } else if (mMap.get(position) instanceof Device) {
+            if (((Device) mMap.get(position)).isControl()) {
+                String controlName = ((Device) mMap.get(position)).getName();
+                Control control = ((Device) mMap.get(position)).getControls().get(controlName);
+                if (control != null) {
+                    if (control.getMeta("type", "text").equals("switch")) {
+                        return CONTROL_SWITCH;
+                    } else if (control.getMeta("type", "text").equals("range")) {
+                        return CONTROL_RANGE;
+                    } else {
+                        return CONTROL_TEXT;
+                    }
+                }
+            } else
+                return DEVICE;
         }
         return -1;
     }
-    
+
     /**
      * This method creates different RecyclerView. ViewHolder objects based on the item view type.
      *
@@ -71,18 +95,30 @@ public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView
      */
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
-        RecyclerView.ViewHolder viewHolder;
+        View view;
+        RecyclerView.ViewHolder viewHolder = null;
         LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
 
         switch (viewType) {
-            case DEVICE:
-                View v1 = inflater.inflate(R.layout.row_layout, viewGroup, false);
-                viewHolder = new ViewHolderDevice(v1);
+            case ROOM:
+                view = inflater.inflate(R.layout.row_layout, viewGroup, false);
+                viewHolder = new ViewHolderRoom(view);
                 break;
-            case CONTROL:
-            	// TODO: Set different layout and viewholder
-                View v2 = inflater.inflate(R.layout.row_layout, viewGroup, false);
-                viewHolder = new ViewHolderDevice(v2);
+            case DEVICE:
+                view = inflater.inflate(R.layout.row_layout, viewGroup, false);
+                viewHolder = new ViewHolderDevice(view);
+                break;
+            case CONTROL_SWITCH:
+                view = inflater.inflate(R.layout.row_layout_device_switch, viewGroup, false);
+                viewHolder = new ViewHolderControlSwitch(view);
+                break;
+            case CONTROL_RANGE:
+                view = inflater.inflate(R.layout.row_layout_device_range, viewGroup, false);
+                viewHolder = new ViewHolderControlRange(view);
+                break;
+            case CONTROL_TEXT:
+                view = inflater.inflate(R.layout.row_layout_device_text, viewGroup, false);
+                viewHolder = new ViewHolderControlText(view);
                 break;
             default:
                 //View v = inflater.inflate(android.R.layout.simple_list_item_1, viewGroup, false);
@@ -104,15 +140,25 @@ public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
         switch (viewHolder.getItemViewType()) {
-            case DEVICE:
-                ViewHolderDevice vh1 = (ViewHolderDevice) viewHolder;
-                configureViewHolder1(vh1, position);
+            case ROOM:
+                ViewHolderRoom vhRoom = (ViewHolderRoom) viewHolder;
+                configureViewHolderRoom(vhRoom, position);
                 break;
-            case CONTROL:
-            	/* TODO
-                ViewHolder2 vh2 = (ViewHolderControl) viewHolder;
-                configureViewHolder2(vh2, position);
-                */
+            case DEVICE:
+                ViewHolderDevice vhDevice = (ViewHolderDevice) viewHolder;
+                configureViewHolderDevice(vhDevice, position);
+                break;
+            case CONTROL_SWITCH:
+                ViewHolderControlSwitch vhControlSwitch = (ViewHolderControlSwitch) viewHolder;
+                configureViewHolderControlSwitch(vhControlSwitch, position);
+                break;
+            case CONTROL_RANGE:
+                ViewHolderControlRange vhControlRange = (ViewHolderControlRange) viewHolder;
+                configureViewHolderControlRange(vhControlRange, position);
+                break;
+            case CONTROL_TEXT:
+                ViewHolderControlText vhControlText = (ViewHolderControlText) viewHolder;
+                configureViewHolderControlText(vhControlText, position);
                 break;
             default:
                 //RecyclerViewSimpleTextViewHolder vh = (RecyclerViewSimpleTextViewHolder) viewHolder;
@@ -121,20 +167,93 @@ public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView
         }
     }
 
-    private void configureViewHolder1(ViewHolderDevice vh1, int position) {
-        String device = ((Device) mMap.get(position)).getName();
-        if (device != null) {
-            vh1.getLabel1().setText(device);
+    private void configureViewHolderRoom(ViewHolderRoom vh, int position) {
+        String text = ((Room) mMap.get(position)).getId();
+        if (text != null) {
+            vh.getLabel1().setText(text);
         }
     }
 
-    /* TODO
-    private void configureViewHolder2(ViewHolderControl vh2) {
-        vh2.getImageView().setImageResource(R.drawable.sample_golden_gate);
+    private void configureViewHolderDevice(ViewHolderDevice vh, int position) {
+        String text = ((Device) mMap.get(position)).getName();
+        if (text != null) {
+            vh.getLabel1().setText(text);
+        }
     }
-    */
-    
-    //@Override
+
+    private void configureViewHolderControlSwitch(final ViewHolderControlSwitch vh, int position) {
+        String controlName = ((Device) mMap.get(position)).getName();
+        String deviceName = ((Device) mMap.get(position)).getDeviceName();
+        if ((controlName != null) && (deviceName != null)){
+            vh.getLabel1().setText(deviceName);
+            vh.getLabel2().setText(controlName);
+
+            Control c = ((Device) mMap.get(position)).getControls().get(controlName);
+            c.setValueChangedObserverDevice(new ValueChangedObserver() {
+                @Override
+                public void onValueChange(final Object sender, Object value) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            vh.setContent((Control) sender);
+                        };
+                    });
+                }
+            });
+            vh.setInteractionListener(c);
+            vh.setContent(c);
+        }
+    }
+
+    private void configureViewHolderControlRange(final ViewHolderControlRange vh, int position) {
+        String controlName = ((Device) mMap.get(position)).getName();
+        String deviceName = ((Device) mMap.get(position)).getDeviceName();
+        if ((controlName != null) && (deviceName != null)){
+            vh.getLabel1().setText(deviceName);
+            vh.getLabel2().setText(controlName);
+
+            Control c = ((Device) mMap.get(position)).getControls().get(controlName);
+            c.setValueChangedObserverDevice(new ValueChangedObserver() {
+                @Override
+                public void onValueChange(final Object sender, Object value) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            vh.setContent((Control) sender);
+                        };
+                    });
+                }
+            });
+            vh.setControl(c);
+            vh.setInteractionListener(c);
+            vh.setContent(c);
+        }
+    }
+
+    private void configureViewHolderControlText(final ViewHolderControlText vh, int position) {
+        String controlName = ((Device) mMap.get(position)).getName();
+        String deviceName = ((Device) mMap.get(position)).getDeviceName();
+        if ((controlName != null) && (deviceName != null)){
+            vh.getLabel1().setText(deviceName);
+            vh.getLabel2().setText(controlName);
+
+            Control c = ((Device) mMap.get(position)).getControls().get(controlName);
+            c.setValueChangedObserverDevice(new ValueChangedObserver() {
+                @Override
+                public void onValueChange(final Object sender, Object value) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            vh.setContent((Control) sender);
+                        };
+                    });
+                }
+            });
+            vh.setInteractionListener(c);
+            vh.setContent(c);
+        }
+    }
+
     public synchronized Object getItem(int position) {
         return mMap.get(position);
     }
@@ -153,9 +272,14 @@ public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView
         notifyDataSetChanged();
     }
 
-    //public Collection<Object> getMap() {
-    //    return (Collection<Object>) mMap.values();
     public Collection<T> getMap() {
         return mMap.values();
+    }
+
+    private void runOnUiThread(Runnable r) {
+        if (Looper.myLooper() == Looper.getMainLooper())
+            r.run();
+        else
+            mUiThreadHandler.post(r);
     }
 }

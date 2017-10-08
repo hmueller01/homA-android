@@ -35,6 +35,7 @@ public class PreferencesQuickpublishNotification extends DialogPreference {
 
     @Override
     protected void onBindDialogView(View view) {
+        super.onBindDialogView(view);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
         topicInput.setText(prefs.getString("serverAddress", ""));
         payloadInput.setText(prefs.getString("serverPort", ""));

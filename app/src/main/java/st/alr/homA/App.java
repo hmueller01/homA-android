@@ -14,7 +14,6 @@ import android.provider.Settings.Secure;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
-import android.widget.ListAdapter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -120,7 +119,7 @@ public class App extends Application {
         });
     }
 
-    public ListAdapter getRoomListAdapter() {
+    public RoomAdapter getRoomListAdapter() {
         return rooms;
     }
 
@@ -140,7 +139,7 @@ public class App extends Application {
     }
 
     public static Context getContext() {
-        return getInstance();
+        return instance.getApplicationContext();
     }
 
     public void onEventMainThread(Events.StateChanged.ServiceMqtt event) {
@@ -212,4 +211,5 @@ public class App extends Application {
     public void onLowMemory() {
         super.onLowMemory();
     }
+
 }

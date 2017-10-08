@@ -20,7 +20,6 @@ public class ControlViewSwitch extends ControlView {
 
     @Override
     protected void setInteractionListener() {
-
         ((Switch) _value).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
