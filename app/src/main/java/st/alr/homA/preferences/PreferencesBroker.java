@@ -30,9 +30,8 @@ public class PreferencesBroker extends DialogPreference {
     private Context context;
     private EditText host;
     private EditText port;
-    private EditText password;
-
-    private static EditText brokerUsername;
+    private EditText brokerUsername;
+    private EditText brokerPassword;
 
     private EditText brokerSecuritySSLCaCrtPath;
 
@@ -46,10 +45,10 @@ public class PreferencesBroker extends DialogPreference {
     private LinearLayout brokerPasswordWrapper;
     //private LinearLayout brokerAuthWrapper;
 
-    private enum RequireablePreferences { BROKER_HOST, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD, CACRT };
+    private enum RequireablePreferences { BROKER_HOST, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD, CACRT }
     
-    Set<RequireablePreferences> okPreferences = Collections.synchronizedSet(EnumSet.noneOf(RequireablePreferences.class));
-    Set<RequireablePreferences> requiredPreferences = Collections.synchronizedSet(EnumSet.of(RequireablePreferences.BROKER_HOST));
+    private Set<RequireablePreferences> okPreferences = Collections.synchronizedSet(EnumSet.noneOf(RequireablePreferences.class));
+    private Set<RequireablePreferences> requiredPreferences = Collections.synchronizedSet(EnumSet.of(RequireablePreferences.BROKER_HOST));
 
     public PreferencesBroker(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -67,28 +66,29 @@ public class PreferencesBroker extends DialogPreference {
     protected View onCreateDialogView() {
         View root = super.onCreateDialogView();
 
-        //securityWrapper = (LinearLayout) root.findViewById(R.id.securityWrapper);
-        brokerUsernameWrapper = (LinearLayout) root.findViewById(R.id.brokerUsernameWrapper);
-        brokerPasswordWrapper = (LinearLayout) root.findViewById(R.id.brokerPasswordWrapper);
-        //brokerAuthWrapper = (LinearLayout) root.findViewById(R.id.brokerAuthWrapper);
+        //securityWrapper = root.findViewById(R.id.securityWrapper);
+        brokerUsernameWrapper = root.findViewById(R.id.brokerUsernameWrapper);
+        brokerPasswordWrapper = root.findViewById(R.id.brokerPasswordWrapper);
+        //brokerAuthWrapper = root.findViewById(R.id.brokerAuthWrapper);
 
-        host = (EditText) root.findViewById(R.id.brokerHost);
-        port = (EditText) root.findViewById(R.id.brokerPort);
+        host = root.findViewById(R.id.brokerHost);
+        port = root.findViewById(R.id.brokerPort);
 
-        brokerUsername = (EditText) root.findViewById(R.id.brokerUsername);
-        password = (EditText) root.findViewById(R.id.brokerPassword);
-        brokerSecurity = (Spinner) root.findViewById(R.id.brokerSecurity);
-        brokerAuth = (Spinner) root.findViewById(R.id.brokerAuth);
+        brokerUsername = root.findViewById(R.id.brokerUsername);
+        brokerPassword = root.findViewById(R.id.brokerPassword);
+        brokerSecurity = root.findViewById(R.id.brokerSecurity);
+        brokerAuth = root.findViewById(R.id.brokerAuth);
 
         brokerSecurityNoneOptions = root.findViewById(R.id.brokerSecurityNoneOptions);
         brokerSecuritySSLOptions = root.findViewById(R.id.brokerSecuritySSLOptions);
-        brokerSecuritySSLCaCrtPath = (EditText) root.findViewById(R.id.brokerSecuritySSLCaCrtPath);        
+        brokerSecuritySSLCaCrtPath = root.findViewById(R.id.brokerSecuritySSLCaCrtPath);
         
         return root;
     }
 
     @Override
     protected void onBindDialogView(View view) {
+        super.onBindDialogView(view);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         host.setText(prefs.getString(Defaults.SETTINGS_KEY_BROKER_HOST, ""));
         port.setText(prefs.getString(Defaults.SETTINGS_KEY_BROKER_PORT, ""));
@@ -96,7 +96,7 @@ public class PreferencesBroker extends DialogPreference {
         SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(context);
 
         brokerUsername.setText(ActivityPreferences.getBrokerUsername());
-        password.setText(prefs.getString(Defaults.SETTINGS_KEY_BROKER_PASSWORD, ""));
+        brokerPassword.setText(prefs.getString(Defaults.SETTINGS_KEY_BROKER_PASSWORD, ""));
 
         int visibility = p.getInt(Defaults.SETTINGS_KEY_BROKER_AUTH, Defaults.VALUE_BROKER_AUTH_ANONYMOUS) == Defaults.VALUE_BROKER_AUTH_BROKERUSERNAME ? View.VISIBLE : View.GONE;
         Log.v(this.toString(), "setting selection to " + p.getInt(Defaults.SETTINGS_KEY_BROKER_AUTH, Defaults.VALUE_BROKER_AUTH_ANONYMOUS));
@@ -120,7 +120,7 @@ public class PreferencesBroker extends DialogPreference {
         handleBrokerSecurity();
         handleCaCrt();        
 
-        conditionalyEnableConnectButton();
+        conditionallyEnableConnectButton();
         conditionallyEnableDisconnectButton();
 
         TextWatcher hostPortWatcher = new TextWatcher() {
@@ -137,7 +137,7 @@ public class PreferencesBroker extends DialogPreference {
             public void afterTextChanged(Editable s) {
                 handleHost();
                 handlePort();
-                conditionalyEnableConnectButton();
+                conditionallyEnableConnectButton();
             }
         };
         
@@ -198,13 +198,12 @@ public class PreferencesBroker extends DialogPreference {
                 break;
             default:
                 Log.v(this.toString(), "auth anon");
-
                 brokerUsernameWrapper.setVisibility(View.GONE);
                 brokerPasswordWrapper.setVisibility(View.GONE);
                 requiredPreferences.remove(RequireablePreferences.BROKER_USERNAME);
                 break;
         }        
-        conditionalyEnableConnectButton();
+        conditionallyEnableConnectButton();
     }
     
     @Override
@@ -217,7 +216,7 @@ public class PreferencesBroker extends DialogPreference {
                 editor.putString(Defaults.SETTINGS_KEY_BROKER_HOST, host.getText().toString());
                 editor.putString(Defaults.SETTINGS_KEY_BROKER_PORT, port.getText().toString());
                 editor.putString(Defaults.SETTINGS_KEY_BROKER_USERNAME, brokerUsername.getText().toString());
-                editor.putString(Defaults.SETTINGS_KEY_BROKER_PASSWORD, password.getText().toString());
+                editor.putString(Defaults.SETTINGS_KEY_BROKER_PASSWORD, brokerPassword.getText().toString());
                 editor.putInt(Defaults.SETTINGS_KEY_BROKER_SECURITY, brokerSecurity.getSelectedItemPosition());
                 editor.putInt(Defaults.SETTINGS_KEY_BROKER_AUTH, brokerAuth.getSelectedItemPosition());
                 editor.putString(Defaults.SETTINGS_KEY_BROKER_SECURITY_SSL_CA_PATH, brokerSecuritySSLCaCrtPath.getText().toString());
@@ -249,7 +248,7 @@ public class PreferencesBroker extends DialogPreference {
             okPreferences.add(p);
         else
             okPreferences.remove(p);
-        conditionalyEnableConnectButton();
+        conditionallyEnableConnectButton();
     }
 
     private void handleUsername() {
@@ -276,31 +275,6 @@ public class PreferencesBroker extends DialogPreference {
             handleState(RequireablePreferences.BROKER_PORT, false);
         }
     }
-    
-    private void conditionalyEnableConnectButton() {
-        View v = getDialog().findViewById(android.R.id.button1);
-        if (v == null)
-            return;
-                
-        Log.v("Required for connect: ", requiredPreferences.toString() );
-        Log.v("Currently set",okPreferences.toString());
-
-        v.setEnabled(okPreferences.containsAll(requiredPreferences));
-    }
-    
-    private void conditionallyEnableDisconnectButton() {
-        View v = getDialog().findViewById(android.R.id.button2);
-        if (v == null)
-            return;
-
-        if (ServiceMqtt.getState() == Defaults.State.ServiceMqtt.CONNECTING
-                || ServiceMqtt.getState() == Defaults.State.ServiceMqtt.CONNECTED) {
-            v.setEnabled(true);
-        } else {
-            v.setEnabled(false);
-        }
-
-    }
 
     private void handleBrokerSecurity() {
         switch (brokerSecurity.getSelectedItemPosition()) {
@@ -320,6 +294,31 @@ public class PreferencesBroker extends DialogPreference {
                 requiredPreferences.remove(RequireablePreferences.CACRT);
                 break;
         }
-        conditionalyEnableConnectButton();
+        conditionallyEnableConnectButton();
     }
+
+    private void conditionallyEnableConnectButton() {
+        View v = getDialog().findViewById(android.R.id.button1);
+        if (v == null)
+            return;
+                
+        Log.v("Required for connect: ", requiredPreferences.toString() );
+        Log.v("Currently set", okPreferences.toString());
+
+        v.setEnabled(okPreferences.containsAll(requiredPreferences));
+    }
+    
+    private void conditionallyEnableDisconnectButton() {
+        View v = getDialog().findViewById(android.R.id.button2);
+        if (v == null)
+            return;
+
+        if (ServiceMqtt.getState() == Defaults.State.ServiceMqtt.CONNECTING
+                || ServiceMqtt.getState() == Defaults.State.ServiceMqtt.CONNECTED) {
+            v.setEnabled(true);
+        } else {
+            v.setEnabled(false);
+        }
+    }
+
 }

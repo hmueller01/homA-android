@@ -15,10 +15,13 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.view.Menu;
+
+import java.io.FileNotFoundException;
+
 import de.greenrobot.event.EventBus;
 
 public class ActivityPreferences extends PreferenceActivity {
-    private static Preference serverPreference;
+    private static Preference mServerPreference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +64,7 @@ public class ActivityPreferences extends PreferenceActivity {
         return getAndroidId();
     }
 
+
     public static class CustomPreferencesFragment extends PreferenceFragment {
 
         @Override
@@ -77,7 +81,7 @@ public class ActivityPreferences extends PreferenceActivity {
                 e.printStackTrace();
             }
 
-            serverPreference = findPreference("serverPreference");
+            mServerPreference = findPreference("serverPreference");
             setServerPreferenceSummary(null);
 
             if (NfcAdapter.getDefaultAdapter(getActivity()) == null
@@ -99,15 +103,17 @@ public class ActivityPreferences extends PreferenceActivity {
 
     private static void setServerPreferenceSummary(Events.StateChanged.ServiceMqtt e) {
         if (e != null) {
-            if (e.getExtra() != null && e.getExtra() instanceof Exception
-                    && ((Exception) e.getExtra()).getCause() != null) {
-                serverPreference.setSummary(((Exception) e.getExtra()).getCause()
-                        .getLocalizedMessage());
+            if (e.getExtra() != null && e.getExtra() instanceof Exception) {
+                if (((Exception) e.getExtra()).getCause() != null)
+                    mServerPreference.setSummary(((Exception) e.getExtra()).getCause()
+                            .getLocalizedMessage());
+                else
+                    mServerPreference.setSummary(((Exception) e.getExtra()).getLocalizedMessage());
             } else {
-                serverPreference.setSummary(Defaults.State.toString(e.getState()));
+                mServerPreference.setSummary(Defaults.State.toString(e.getState()));
             }
         } else {
-            serverPreference.setSummary(ServiceMqtt.getStateAsString());
+            mServerPreference.setSummary(ServiceMqtt.getStateAsString());
         }
     }
 
@@ -117,6 +123,10 @@ public class ActivityPreferences extends PreferenceActivity {
         return true;
     }
 
+    /**
+     * Called to determine if the activity should run in multi-pane mode.
+     * (Two fragments placed side-by-side on a Tablet vs Phone.)
+     */
     @Override
     public boolean onIsMultiPane() {
         return false;

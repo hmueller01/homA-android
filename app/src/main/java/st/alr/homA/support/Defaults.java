@@ -6,7 +6,7 @@ import st.alr.homA.R;
 import android.net.Uri;
 
 public class Defaults {
-    public static final String BUGSNAG_API_KEY = "635a508c10fa87191e33662dd3c08512";
+    //public static final String BUGSNAG_API_KEY = "635a508c10fa87191e33662dd3c08512";
     public static final String MQTT_PING_ACTION = "st.alr.homA.ServiceMqtt.PING";
     public static final int NOTIFCATION_ID = 1337;
     public static final int GET_IMAGE_ID = 1338;

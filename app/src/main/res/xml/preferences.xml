@@ -2,18 +2,19 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <st.alr.homA.preferences.PreferencesBroker
+        android:title="@string/preferencesServerTitle"
         android:key="serverPreference"
         android:negativeButtonText="@string/preferencesServerCancel"
-        android:positiveButtonText="@string/preferencesServerConnect"
-        android:title="@string/preferencesServerTitle" />
+        android:positiveButtonText="@string/preferencesServerConnect" />
 
     <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="runInBackgroundPreference"
+        android:title="@string/preferencesNotificationTitle"
         android:summary="@string/preferencesNotificationSummary"
-        android:title="@string/preferencesNotificationTitle" />
+        android:key="runInBackgroundPreference"
+        android:defaultValue="true" />
 
-    <PreferenceScreen android:title="@string/preferencesQuickpublishTitle"         
+    <PreferenceScreen
+        android:title="@string/preferencesQuickpublishTitle"
         android:summary="@string/preferencesQuickpublishSummary" >
         <PreferenceScreen android:title="@string/preferencesQuickpublishNotificationTitle" >
     		    <intent android:targetPackage="st.alr.homA" android:targetClass="st.alr.homA.ActivityQuickpublishNotification"/>
@@ -25,14 +26,14 @@
     </PreferenceScreen>
 
     <st.alr.homA.preferences.ImplementedDialogPreference
+        android:title="@string/preferencesLicensesTitle"
+        android:summary="@string/preferencesLicensesSummary"
         android:dialogLayout="@layout/preferences_licenses"
         android:negativeButtonText=""
-        android:positiveButtonText="@string/preferencesLicensesDismiss"
-        android:summary="@string/preferencesLicensesSummary"
-        android:title="@string/preferencesLicensesTitle" />
+        android:positiveButtonText="@string/preferencesLicensesDismiss" />
 
     <Preference
-        android:key="versionReadOnly"
-        android:title="@string/preferencesVersionTitle" />
+        android:title="@string/preferencesVersionTitle"
+        android:key="versionReadOnly" />
 
 </PreferenceScreen>

@@ -42,8 +42,8 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         Log.v(this.toString(), "onCreate()");
-        //TODO Bugsnag.register(this, Defaults.BUGSNAG_API_KEY);
-        //TODO Bugsnag.setNotifyReleaseStages("production", "testing");
+        //Bugsnag.register(this, Defaults.BUGSNAG_API_KEY);
+        //Bugsnag.setNotifyReleaseStages("production", "testing");
         instance = this;
         uiThreadHandler = new Handler(getMainLooper());
 
