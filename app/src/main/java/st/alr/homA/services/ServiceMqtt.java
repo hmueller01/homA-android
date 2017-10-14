@@ -57,6 +57,7 @@ import st.alr.homA.support.MqttPublish;
 import st.alr.homA.support.ServiceBindable;
 
 public class ServiceMqtt extends ServiceBindable implements MqttCallback {
+    private final String LOG_TAG = ServiceMqtt.class.getSimpleName();
     private static State.ServiceMqtt state = State.ServiceMqtt.INITIAL;
 
     private short keepAliveSeconds;
@@ -91,6 +92,8 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         doStart(startId);
+        String action = (intent == null) ? "intent is null!" : intent.getAction();
+        Log.v(LOG_TAG, "onStartCommand: intent action: " + action);
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -122,46 +125,46 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
      * @param startId Start Id, set to -1 to force start (after manual disconnect)
      */
     void handleStart(int startId) {
-        Log.v(this.toString(), "handleStart");
+        Log.v(LOG_TAG, "handleStart");
 
         // Respect user's wish to stay disconnected. Overwrite with startId == -1 to reconnect manually afterwards
         if ((state == Defaults.State.ServiceMqtt.DISCONNECTED_USERDISCONNECT) && startId != -1) {
-            Log.d(this.toString(), "handleStart: respecting user disconnect ");
+            Log.d(LOG_TAG, "handleStart: respecting user disconnect ");
             return;
         }
 
         if (isConnecting()) {
-            Log.d(this.toString(), "handleStart: already connecting");
+            Log.d(LOG_TAG, "handleStart: already connecting");
             return;
         }
 
         // Respect user's wish to not use data
         if (!isBackgroundDataEnabled()) {
-            Log.e(this.toString(), "handleStart: !isBackgroundDataEnabled");
+            Log.e(LOG_TAG, "handleStart: !isBackgroundDataEnabled");
             changeState(Defaults.State.ServiceMqtt.DISCONNECTED_DATADISABLED);
             return;
         }
 
         // Don't do anything unless we're disconnected
         if (isDisconnected()) {
-            Log.v(this.toString(), "handleStart: !isConnected");
+            Log.v(LOG_TAG, "handleStart: !isConnected");
             // Check if there is a data connection
             if (isOnline(true)) {
                 if (connect()) {
-                    Log.v(this.toString(), "handleStart: connect sucessfull");
+                    Log.v(LOG_TAG, "handleStart: connect sucessfull");
                     onConnect();
                 }
             } else {
-                Log.e(this.toString(), "handleStart: !isOnline");
+                Log.e(LOG_TAG, "handleStart: !isOnline");
                 changeState(Defaults.State.ServiceMqtt.DISCONNECTED_WAITINGFORINTERNET);
             }
         } else {
-            Log.d(this.toString(), "handleStart: already connected");
+            Log.d(LOG_TAG, "handleStart: already connected");
         }
     }
     
     private boolean isDisconnected(){
-        Log.v(this.toString(), "disconnect check: " + state);
+        Log.v(LOG_TAG, "isDisconnected: " + state);
         return state == Defaults.State.ServiceMqtt.INITIAL 
                 || state == Defaults.State.ServiceMqtt.DISCONNECTED 
                 || state == Defaults.State.ServiceMqtt.DISCONNECTED_USERDISCONNECT 
@@ -175,7 +178,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
      * @category CONNECTION HANDLING
      */
     private void initMqttClient() {
-        Log.v(this.toString(), "init MQTT Client");
+        Log.v(LOG_TAG, "initMqttClient");
 
         if (mqttClient != null) {
             return;
@@ -190,7 +193,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
                 brokerPort = Defaults.VALUE_BROKER_PORT;
             String prefix = getBrokerSecurityMode() == Defaults.VALUE_BROKER_SECURITY_NONE ? "tcp" : "ssl";
             String serverURI = prefix + "://" + brokerAddress + ":" + brokerPort;
-            Log.v(this.toString(), "serverURI=" + serverURI);
+            Log.v(LOG_TAG, "initMqttClient: serverURI=" + serverURI);
             mqttClient = new MqttClient(serverURI, ActivityPreferences.getDeviceName(), null);
             mqttClient.setCallback(this);
         } catch (MqttException e) {
@@ -238,7 +241,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
     }
 
     private boolean connect() {
-        Log.v(this.toString(), "connect");
+        Log.v(LOG_TAG, "connect");
         workerThread = Thread.currentThread(); // We connect, so we're the
                                                // worker thread
         error = null; // clear previous error on connect
@@ -270,12 +273,12 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
 
             mqttClient.connect(options);
 
-            Log.d(this.toString(), "No error during connect");
+            Log.d(LOG_TAG, "connect: No error during connect");
             changeState(Defaults.State.ServiceMqtt.CONNECTED);
 
             return true;
         } catch (Exception e) { // Catch paho and socket factory exceptions
-            Log.e(this.toString(), e.toString());
+            Log.e(LOG_TAG, e.toString());
             changeState(e);
             return false;
         }
@@ -284,7 +287,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
 
     private void onConnect() {
         if (!isConnected())
-            Log.e(this.toString(), "onConnect: !isConnected");
+            Log.e(LOG_TAG, "onConnect: !isConnected");
                 
         // Establish observer to monitor wifi and radio connectivity 
         if (netConnReceiver == null) {
@@ -308,9 +311,13 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
             e.printStackTrace();
         }
     }
-    
+
+    /**
+     * Disconnect from MQTT broker and set state.
+     * @param fromUser True, if disconnect by user request
+     */
     public void disconnect(boolean fromUser) {
-        Log.v(this.toString(), "disconnect");
+        Log.v(LOG_TAG, "disconnect");
         
         if (isConnecting()) // throws MqttException.REASON_CODE_CONNECT_IN_PROGRESS when disconnecting while connect is in progress.
             return;
@@ -332,7 +339,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
                 pingSender = null;
             }
         } catch (Exception eee) {
-            Log.e(this.toString(), "Unregister failed", eee);
+            Log.e(LOG_TAG, "disconnect: Unregister failed", eee);
         }
 
         try {
@@ -353,7 +360,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
     // Lint check derps with the wl.release() call.
     @Override
     public void connectionLost(Throwable t) {
-        Log.e(this.toString(), "error: " + t.toString());
+        Log.e(LOG_TAG, "error: " + t.toString());
         // we protect against the phone switching off while we're doing this
         // by requesting a wake lock - we request the minimum possible wake
         // lock - just enough to keep the CPU running until we've finished
@@ -390,7 +397,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
     }
 
     private void changeState(Defaults.State.ServiceMqtt newState, Exception e) {
-        Log.d(this.toString(), "ServiceMqtt state changed to: " + newState);
+        Log.d(LOG_TAG, "changeState: ServiceMqtt state changed to: " + newState);
         state = newState;
         EventBus.getDefault().postSticky(new Events.StateChanged.ServiceMqtt(newState, e));
     }
@@ -495,11 +502,11 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
             @Override
             public void run() {
             if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
-                Log.e(this.toString(), "PUB ON MAIN THREAD");
+                Log.e(LOG_TAG, "publish: PUB ON MAIN THREAD");
             }
 
             if (!isOnline(false) || !isConnected()) {
-                Log.d(this.toString(), "pub deferred");
+                Log.d(LOG_TAG, "publish: pub deferred");
 
                 deferPublish(p);
                 doStart(1);
@@ -511,7 +518,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
                 mqttClient.getTopic(p.getTopic()).publish(p);
                 p.publishSuccessfull();
             } catch (MqttException e) {
-                Log.e(this.toString(), e.getMessage());
+                Log.e(LOG_TAG, "publish: " + e.getMessage());
                 e.printStackTrace();
                 p.cancelWait();
                 p.publishFailed();
@@ -580,7 +587,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
 
         public void wait(LinkedList<DeferredPublishable> queue, Runnable onRemove) {
             if (timeoutHandler != null) {
-                Log.d(this.toString(), "This DeferredPublishable already has a timeout set");
+                Log.d(LOG_TAG, "wait: This DeferredPublishable already has a timeout set");
                 return;
             }
 
@@ -607,13 +614,14 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         @SuppressLint("Wakelock")
         public void onReceive(Context ctx, Intent intent)
         {
-            Log.v(this.toString(), "NetworkConnectionIntentReceiver: onReceive");
+            Log.v(LOG_TAG, "NetworkConnectionIntentReceiver: onReceive");
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
             WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MQTTitude");
             wl.acquire();
 
             if (isOnline(true) && !isConnected() && !isConnecting()) {
-                Log.v(this.toString(), "NetworkConnectionIntentReceiver: triggering doStart(-1)");
+                Log.v(LOG_TAG, "NetworkConnectionIntentReceiver: onReceive: triggering doStart(-1)");
+                // TODO: Why is this set to 1 and not to -1?
                 doStart(1);
             }
             wl.release();
@@ -638,7 +646,7 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         // inform the app (for times when the Activity UI is running) of the
         // received message so the app UI can be updated with the new data
         String payloadStr = new String(message.getPayload());
-        Log.v(this.toString(), "messageArrived: topic=" + topic
+        Log.v(LOG_TAG, "messageArrived: topic=" + topic
                 + ", message=" + payloadStr);
 
         String[] splitTopic = topic.split("/");
@@ -685,10 +693,10 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (isOnline(true) && !isConnected() && !isConnecting()) {
-                Log.v(this.toString(), "ping: isOnline()=" + isOnline(true)  + ", isConnected()=" + isConnected());
+                Log.v(LOG_TAG, "onReceive: ping: isOnline()=" + isOnline(true)  + ", isConnected()=" + isConnected());
                 doStart(-1);
             } else if (!isOnline(true)) {
-                Log.d(this.toString(), "ping: Waiting for network to come online again");
+                Log.d(LOG_TAG, "onReceive: ping: Waiting for network to come online again");
             } else {            
                 try {
                     ping();
@@ -696,20 +704,20 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
                     // if something goes wrong, it should result in
                     // connectionLost
                     // being called, so we will handle it there
-                    Log.e(this.toString(), "ping failed - MQTT exception", e);
+                    Log.e(LOG_TAG, "onReceive: ping failed - MQTT exception", e);
 
                     // assume the client connection is broken - trash it
                     try {
                         mqttClient.disconnect();
                     } catch (MqttPersistenceException e1) {
-                        Log.e(this.toString(), "disconnect failed - persistence exception", e1);
+                        Log.e(LOG_TAG, "onReceive: disconnect failed - persistence exception", e1);
                     } catch (MqttException e2)
                     {
-                        Log.e(this.toString(), "disconnect failed - mqtt exception", e2);
+                        Log.e(LOG_TAG, "onReceive: disconnect failed - mqtt exception", e2);
                     }
 
                     // reconnect
-                    Log.w(this.toString(), "onReceive: MqttException=" + e);
+                    Log.w(LOG_TAG, "onReceive: MqttException=" + e);
                     doStart(-1);
                 }
             }

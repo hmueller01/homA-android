@@ -40,6 +40,7 @@ import android.widget.ScrollView;
 import de.greenrobot.event.EventBus;
 
 public class ActivityMain extends FragmentActivity {
+    private final String LOG_TAG = ActivityMain.class.getSimpleName();
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;   
@@ -80,12 +81,12 @@ public class ActivityMain extends FragmentActivity {
 
     private void updateViewVisibility() {
         if (ServiceMqtt.getState() == Defaults.State.ServiceMqtt.CONNECTED) {
-            Log.v(this.toString(), "Showing connected layout");
+            Log.v(LOG_TAG, "updateViewVisibility: Showing connected layout");
             connectedLayout.setVisibility(View.VISIBLE);
             disconnectedLayout.setVisibility(View.INVISIBLE);
             setActionbarTitle();
         } else {
-            Log.v(this.toString(), "Showing disconnected layout");
+            Log.v(LOG_TAG, "updateViewVisibility: Showing disconnected layout");
             connectedLayout.setVisibility(View.INVISIBLE);
             disconnectedLayout.setVisibility(View.VISIBLE);
             setActionbarTitleAppname();
@@ -190,13 +191,13 @@ public class ActivityMain extends FragmentActivity {
     }
 
     protected void setActionbarTitle(String t){
-        Log.v(this.toString(), "setActionbarTitle with parameter to to " + t);
+        Log.v(LOG_TAG, "setActionbarTitle: title=" + t);
         getActionBar().setTitle(t);
         title = t;
     }
     
     protected void setActionbarTitle() {
-        Log.v(this.toString(), "setActionbarTitle to " + title);
+        Log.v(LOG_TAG, "setActionbarTitle: title=" + title);
         if (title != null)
             getActionBar().setTitle(title);
         else 
@@ -204,7 +205,7 @@ public class ActivityMain extends FragmentActivity {
     }
 
     private void selectRoom(Room r) {
-        Log.v(this.toString(), "selecting " + r.getId());
+        Log.v(LOG_TAG, "selectRoom: " + r.getId());
         Fragment f = RoomFragment.newInstance(r);
         
         // Insert the fragment by replacing any existing fragment
@@ -213,7 +214,7 @@ public class ActivityMain extends FragmentActivity {
                        .replace(R.id.content_frame, f)
                        .commit();
         PreferenceManager.getDefaultSharedPreferences(this).edit().putString("selectedRoomId", r.getId()).commit();
-        Log.v(this.toString(), "selected2 "+ PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""));
+        Log.v(LOG_TAG, "selectRoom: selected " + PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""));
 
         setActionbarTitle(r.getId());
     }
@@ -222,8 +223,8 @@ public class ActivityMain extends FragmentActivity {
         if (e.getRoom().getId().equals(PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""))) {
             selectRoom(e.getRoom());
         } else {
-            Log.v(this.toString(), "selected "+ PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""));
-            Log.v(this.toString(), "room " +e.getRoom().getId());
+            Log.v(LOG_TAG, "onEventMainThread: selected " + PreferenceManager.getDefaultSharedPreferences(this).getString("selectedRoomId", ""));
+            Log.v(LOG_TAG, "onEventMainThread: room " + e.getRoom().getId());
         }
     }
 
@@ -234,6 +235,7 @@ public class ActivityMain extends FragmentActivity {
         App.getInstance().cancelNotification();
         EventBus.getDefault().unregister(this);
         // TODO: Still sudden app restarts, reason unknown.
+        //android.os.Process.killProcess(android.os.Process.myPid());
         super.onDestroy();
     }
 
@@ -242,6 +244,7 @@ public class ActivityMain extends FragmentActivity {
      * This Fragment class lists/shows all the devices of a room.
      */
     public static class RoomFragment extends Fragment {
+        private final String LOG_TAG = RoomFragment.class.getSimpleName();
         private Room room;
         private ListView listView;
         
@@ -260,7 +263,7 @@ public class ActivityMain extends FragmentActivity {
             room = App.getInstance().getRoom(getArguments().getString("roomId"));
             if (room == null) {
                 getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
-                Log.e(this.toString(), "Clearing fragment for removed room");
+                Log.e(LOG_TAG, "RoomFragment: onCreate: Clearing fragment for removed room");
             }
         }
         
@@ -293,6 +296,7 @@ public class ActivityMain extends FragmentActivity {
      * using a AlertDialog.
      */
     public static class DeviceFragment extends DialogFragment {
+        private final String LOG_TAG = DeviceFragment.class.getSimpleName();
         private Room room;
         private Device device;
 
@@ -307,7 +311,7 @@ public class ActivityMain extends FragmentActivity {
 
         public void onEventMainThread(Events.StateChanged.ServiceMqtt event) {
             if (event.getState() != Defaults.State.ServiceMqtt.CONNECTED) {
-                Log.v(this.toString(), "Lost connection, closing currently open dialog");
+                Log.v(LOG_TAG, "DeviceFragment: onEventMainThread: Lost connection, closing currently open dialog");
                 FragmentManager fragmentManager = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager
                         .beginTransaction();
@@ -338,7 +342,7 @@ public class ActivityMain extends FragmentActivity {
                 b = getArguments();
             room = App.getInstance().getRoom(b.getString("roomId"));
             if (room == null) {
-                Log.e(this.toString(), "DeviceFragment for phantom room: " + b.getString("roomId"));
+                Log.e(LOG_TAG, "DeviceFragment: setArgs: phantom room: " + b.getString("roomId"));
                 return false;
             }
 
@@ -399,7 +403,7 @@ public class ActivityMain extends FragmentActivity {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            Log.v(this.toString(), "DeviceFragment: onDestroyView");
+            Log.v(LOG_TAG, "DeviceFragment: onDestroyView");
 
             ValueSortedMap<String, Control> controls;
 

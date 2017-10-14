@@ -30,6 +30,7 @@ import st.alr.homA.support.Events;
 import st.alr.homA.support.RoomAdapter;
 
 public class App extends Application {
+    private final String LOG_TAG = App.class.getSimpleName();
     private static App instance;
     private NotificationCompat.Builder notificationBuilder;
     private SharedPreferences sharedPreferences;
@@ -42,7 +43,7 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.v(this.toString(), "onCreate()");
+        Log.v(LOG_TAG, "onCreate()");
         //TODO Bugsnag.register(this, Defaults.BUGSNAG_API_KEY);
         //TODO Bugsnag.setNotifyReleaseStages("production", "testing");
         instance = this;
@@ -68,7 +69,7 @@ public class App extends Application {
     }
 
     public Room getRoom(String id) {
-        Log.v("getRoom", "request for " + id + "in " + rooms.getMap().toString());
+        Log.v(LOG_TAG, "getRoom(): request for " + id + " in " + rooms.getMap().toString());
         return (Room) rooms.getItem(id);
     }
 
@@ -158,7 +159,7 @@ public class App extends Application {
      * @category NOTIFICATION HANDLING
      */
     private void handleNotification() {
-        Log.v(this.toString(), "handleNotification()");
+        Log.v(LOG_TAG, "handleNotification()");
         notificationManager.cancel(Defaults.NOTIFCATION_ID);
 
         if (sharedPreferences.getBoolean(Defaults.SETTINGS_KEY_NOTIFICATION_ENABLED, Defaults.VALUE_NOTIFICATION_ENABLED))
@@ -211,5 +212,12 @@ public class App extends Application {
     @Override
     public void onLowMemory() {
         super.onLowMemory();
+        Log.v(LOG_TAG, "onLowMemory()");
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        Log.v(LOG_TAG, "onTrimMemory()");
     }
 }
