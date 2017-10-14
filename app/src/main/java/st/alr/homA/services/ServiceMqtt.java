@@ -459,6 +459,9 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         // disconnect immediately
         disconnect(false);
 
+        // cancel all notifications
+        App.getInstance().cancelNotification();
+
         // Clean up static data to avoid leaking
         instance = null;
 

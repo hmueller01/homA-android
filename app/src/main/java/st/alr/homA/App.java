@@ -55,7 +55,7 @@ public class App extends Application {
         SharedPreferences.OnSharedPreferenceChangeListener preferencesChangedListener;
         preferencesChangedListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreference, String key) {
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                 if (key.equals(Defaults.SETTINGS_KEY_NOTIFICATION_ENABLED) ||
                         key.equals(Defaults.SETTINGS_KEY_QUICKPUBLISH_NOTIFICATION))
                     handleNotification();

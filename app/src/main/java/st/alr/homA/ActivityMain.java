@@ -35,6 +35,7 @@ import de.greenrobot.event.EventBus;
 import st.alr.homA.model.Control;
 import st.alr.homA.model.Device;
 import st.alr.homA.model.Room;
+import st.alr.homA.services.ServiceBackgroundPublish;
 import st.alr.homA.services.ServiceMqtt;
 import st.alr.homA.support.Defaults;
 import st.alr.homA.support.Events;
@@ -66,6 +67,10 @@ public class ActivityMain extends FragmentActivity {
         if (itemId == R.id.menu_settings) {
             i = new Intent(this, ActivityPreferences.class);
             startActivity(i);
+            return true;
+        } else if (itemId == R.id.menu_exit) {
+            //finishAffinity(); // requires API 16
+            finish();
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -252,8 +257,8 @@ public class ActivityMain extends FragmentActivity {
     protected void onDestroy() {
         // disconnect from MQTT broker, if app is terminated
         stopService(new Intent(this, ServiceMqtt.class));
-        App.getInstance().cancelNotification();
-        // TODO: Still sudden app restarts, reason unknown.
+        stopService(new Intent(this, ServiceBackgroundPublish.class));
+
         super.onDestroy();
     }
 

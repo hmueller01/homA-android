@@ -6,6 +6,7 @@
     <string name="titleActivityQuickpublishNotification">"Notification Quickpublish"</string>
     <string name="titleActivityMain">HomA</string>
     <string name="titleActivityPreferences">"Settings"</string>
+    <string name="titleActivityExit">"Exit"</string>
     <string name="preferencesServerTitle">"Server"</string>
     <string name="preferencesServerAddress">"Server address"</string>
     <string name="preferencesServerPort">"Server port"</string>

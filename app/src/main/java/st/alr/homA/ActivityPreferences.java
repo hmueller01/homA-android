@@ -1,10 +1,8 @@
 
 package st.alr.homA;
 
-import st.alr.homA.services.ServiceMqtt;
-import st.alr.homA.support.Defaults;
-import st.alr.homA.support.Events;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.nfc.NfcAdapter;
@@ -16,9 +14,10 @@ import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.view.Menu;
 
-import java.io.FileNotFoundException;
-
 import de.greenrobot.event.EventBus;
+import st.alr.homA.services.ServiceMqtt;
+import st.alr.homA.support.Defaults;
+import st.alr.homA.support.Events;
 
 public class ActivityPreferences extends PreferenceActivity {
     private static Preference mServerPreference;
