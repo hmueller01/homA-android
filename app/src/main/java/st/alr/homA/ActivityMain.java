@@ -203,7 +203,7 @@ public class ActivityMain extends FragmentActivity {
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     Defaults.PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
         }
-        
+
         EventBus.getDefault().register(this);
     }
     

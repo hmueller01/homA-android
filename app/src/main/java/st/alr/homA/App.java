@@ -52,16 +52,6 @@ public class App extends Application {
 
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.OnSharedPreferenceChangeListener preferencesChangedListener;
-        preferencesChangedListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                if (key.equals(Defaults.SETTINGS_KEY_NOTIFICATION_ENABLED) ||
-                        key.equals(Defaults.SETTINGS_KEY_QUICKPUBLISH_NOTIFICATION))
-                    handleNotification();
-            }
-        };
-        sharedPreferences.registerOnSharedPreferenceChangeListener(preferencesChangedListener);
         handleNotification();
         EventBus.getDefault().register(this);
     }
@@ -156,7 +146,7 @@ public class App extends Application {
     /**
      * @category NOTIFICATION HANDLING
      */
-    private void handleNotification() {
+    public void handleNotification() {
         Log.v(this.toString(), "handleNotification()");
         notificationManager.cancel(Defaults.NOTIFCATION_ID);
 

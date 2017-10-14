@@ -12,6 +12,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.util.Log;
 import android.view.Menu;
 
 import de.greenrobot.event.EventBus;
@@ -29,6 +30,20 @@ public class ActivityPreferences extends PreferenceActivity {
         // Start service if it is not already started
         Intent service = new Intent(this, ServiceMqtt.class);
         startService(service);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.OnSharedPreferenceChangeListener preferencesChangedListener;
+        preferencesChangedListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                if (key.equals(Defaults.SETTINGS_KEY_NOTIFICATION_ENABLED) ||
+                        key.equals(Defaults.SETTINGS_KEY_QUICKPUBLISH_NOTIFICATION)) {
+                    Log.v(this.toString(), "onSharedPreferenceChanged: " + key);
+                    App.getInstance().handleNotification();
+                }
+            }
+        };
+        sharedPreferences.registerOnSharedPreferenceChangeListener(preferencesChangedListener);
 
         // Register for connection changed events
         EventBus.getDefault().register(this);

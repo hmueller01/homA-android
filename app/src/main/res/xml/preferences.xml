@@ -16,12 +16,15 @@
     <PreferenceScreen
         android:title="@string/preferencesQuickpublishTitle"
         android:summary="@string/preferencesQuickpublishSummary" >
-        <PreferenceScreen android:title="@string/preferencesQuickpublishNotificationTitle" >
+        <PreferenceScreen
+            android:title="@string/preferencesQuickpublishNotificationTitle" >
     		    <intent android:targetPackage="st.alr.homA" android:targetClass="st.alr.homA.ActivityQuickpublishNotification"/>
         </PreferenceScreen>
 
-        <PreferenceScreen android:title="NFC" android:key="preferencesNFC" >
-            <intent android:targetPackage="st.alr.homA" android:targetClass="st.alr.homA.ActivityQuickpublishNfc"/>
+        <PreferenceScreen
+            android:title="NFC"
+            android:key="preferencesNFC" >
+                <intent android:targetPackage="st.alr.homA" android:targetClass="st.alr.homA.ActivityQuickpublishNfc"/>
         </PreferenceScreen>
     </PreferenceScreen>
 
