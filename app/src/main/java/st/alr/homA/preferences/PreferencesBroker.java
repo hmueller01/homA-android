@@ -1,14 +1,6 @@
 
 package st.alr.homA.preferences;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Set;
-
-import st.alr.homA.ActivityPreferences;
-import st.alr.homA.R;
-import st.alr.homA.services.ServiceMqtt;
-import st.alr.homA.support.Defaults;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -26,24 +18,29 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
+
+import st.alr.homA.ActivityPreferences;
+import st.alr.homA.R;
+import st.alr.homA.services.ServiceMqtt;
+import st.alr.homA.support.Defaults;
+
 public class PreferencesBroker extends DialogPreference {
+    private final String LOG_TAG = PreferencesBroker.class.getSimpleName();
     private Context context;
     private EditText host;
     private EditText port;
     private EditText brokerUsername;
     private EditText brokerPassword;
-
     private EditText brokerSecuritySSLCaCrtPath;
-
     private Spinner brokerSecurity;
     private View brokerSecuritySSLOptions;
     private View brokerSecurityNoneOptions;
     private Spinner brokerAuth;
-    
-    //private LinearLayout securityWrapper;
     private LinearLayout brokerUsernameWrapper;
     private LinearLayout brokerPasswordWrapper;
-    //private LinearLayout brokerAuthWrapper;
 
     private enum RequireablePreferences { BROKER_HOST, BROKER_PORT, BROKER_USERNAME, BROKER_PASSWORD, CACRT }
     
@@ -66,10 +63,8 @@ public class PreferencesBroker extends DialogPreference {
     protected View onCreateDialogView() {
         View root = super.onCreateDialogView();
 
-        //securityWrapper = root.findViewById(R.id.securityWrapper);
         brokerUsernameWrapper = root.findViewById(R.id.brokerUsernameWrapper);
         brokerPasswordWrapper = root.findViewById(R.id.brokerPasswordWrapper);
-        //brokerAuthWrapper = root.findViewById(R.id.brokerAuthWrapper);
 
         host = root.findViewById(R.id.brokerHost);
         port = root.findViewById(R.id.brokerPort);
@@ -98,9 +93,9 @@ public class PreferencesBroker extends DialogPreference {
         brokerUsername.setText(ActivityPreferences.getBrokerUsername());
         brokerPassword.setText(prefs.getString(Defaults.SETTINGS_KEY_BROKER_PASSWORD, ""));
 
-        int visibility = p.getInt(Defaults.SETTINGS_KEY_BROKER_AUTH, Defaults.VALUE_BROKER_AUTH_ANONYMOUS) == Defaults.VALUE_BROKER_AUTH_BROKERUSERNAME ? View.VISIBLE : View.GONE;
-        Log.v(this.toString(), "setting selection to " + p.getInt(Defaults.SETTINGS_KEY_BROKER_AUTH, Defaults.VALUE_BROKER_AUTH_ANONYMOUS));
-        brokerAuth.setSelection(p.getInt(Defaults.SETTINGS_KEY_BROKER_AUTH, Defaults.VALUE_BROKER_AUTH_ANONYMOUS));
+        int selection = p.getInt(Defaults.SETTINGS_KEY_BROKER_AUTH, Defaults.VALUE_BROKER_AUTH_ANONYMOUS);
+        int visibility = (selection == Defaults.VALUE_BROKER_AUTH_BROKERUSERNAME) ? View.VISIBLE : View.GONE;
+        brokerAuth.setSelection(selection);
         brokerUsernameWrapper.setVisibility(visibility);
         brokerPasswordWrapper.setVisibility(visibility);
 
@@ -124,7 +119,6 @@ public class PreferencesBroker extends DialogPreference {
         conditionallyEnableDisconnectButton();
 
         TextWatcher hostPortWatcher = new TextWatcher() {
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
             }
@@ -140,7 +134,6 @@ public class PreferencesBroker extends DialogPreference {
                 conditionallyEnableConnectButton();
             }
         };
-        
         host.addTextChangedListener(hostPortWatcher);
         port.addTextChangedListener(hostPortWatcher);
 
@@ -182,28 +175,21 @@ public class PreferencesBroker extends DialogPreference {
             public void afterTextChanged(Editable s) {
             }
         });
-    }
-    
-    private void handleCaCrt() {
-        handleState(RequireablePreferences.CACRT, brokerSecuritySSLCaCrtPath.getText().toString().length() > 0);
-    }
 
-    private void handleBrokerAuth() {
-        switch (brokerAuth.getSelectedItemPosition()) {
-            case Defaults.VALUE_BROKER_AUTH_BROKERUSERNAME:
-                Log.v(this.toString(), "auth username");
-                brokerUsernameWrapper.setVisibility(View.VISIBLE);
-                brokerPasswordWrapper.setVisibility(View.VISIBLE);
-                requiredPreferences.add(RequireablePreferences.BROKER_USERNAME);
-                break;
-            default:
-                Log.v(this.toString(), "auth anon");
-                brokerUsernameWrapper.setVisibility(View.GONE);
-                brokerPasswordWrapper.setVisibility(View.GONE);
-                requiredPreferences.remove(RequireablePreferences.BROKER_USERNAME);
-                break;
-        }        
-        conditionallyEnableConnectButton();
+        brokerSecuritySSLCaCrtPath.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                handleCaCrt();
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
     }
     
     @Override
@@ -243,22 +229,6 @@ public class PreferencesBroker extends DialogPreference {
         super.onClick(dialog, which);
     }
     
-    private void handleState(RequireablePreferences p, boolean ok) {
-        if (ok)
-            okPreferences.add(p);
-        else
-            okPreferences.remove(p);
-        conditionallyEnableConnectButton();
-    }
-
-    private void handleUsername() {
-        try {
-            handleState(RequireablePreferences.BROKER_USERNAME, brokerUsername.getText().toString().length() > 0);
-        } catch (Exception e) {
-            handleState(RequireablePreferences.BROKER_USERNAME, false);
-        }
-    }
-    
     private void handleHost() {
         try {
             handleState(RequireablePreferences.BROKER_HOST, host.getText().toString().length() > 0);
@@ -273,6 +243,32 @@ public class PreferencesBroker extends DialogPreference {
             handleState(RequireablePreferences.BROKER_PORT, (p > 0) && (p <= 65535));
         } catch (Exception e) {
             handleState(RequireablePreferences.BROKER_PORT, false);
+        }
+    }
+
+    private void handleBrokerAuth() {
+        switch (brokerAuth.getSelectedItemPosition()) {
+            case Defaults.VALUE_BROKER_AUTH_BROKERUSERNAME:
+                Log.v(LOG_TAG, "auth username");
+                brokerUsernameWrapper.setVisibility(View.VISIBLE);
+                brokerPasswordWrapper.setVisibility(View.VISIBLE);
+                requiredPreferences.add(RequireablePreferences.BROKER_USERNAME);
+                break;
+            default:
+                Log.v(LOG_TAG, "auth anon");
+                brokerUsernameWrapper.setVisibility(View.GONE);
+                brokerPasswordWrapper.setVisibility(View.GONE);
+                requiredPreferences.remove(RequireablePreferences.BROKER_USERNAME);
+                break;
+        }
+        conditionallyEnableConnectButton();
+    }
+
+    private void handleUsername() {
+        try {
+            handleState(RequireablePreferences.BROKER_USERNAME, brokerUsername.getText().toString().length() > 0);
+        } catch (Exception e) {
+            handleState(RequireablePreferences.BROKER_USERNAME, false);
         }
     }
 
@@ -297,15 +293,29 @@ public class PreferencesBroker extends DialogPreference {
         conditionallyEnableConnectButton();
     }
 
+    private void handleCaCrt() {
+        boolean ok = brokerSecuritySSLCaCrtPath.getText().toString().length() > 0;
+        handleState(RequireablePreferences.CACRT, ok);
+    }
+
+    private void handleState(RequireablePreferences p, boolean ok) {
+        if (ok)
+            okPreferences.add(p);
+        else
+            okPreferences.remove(p);
+        conditionallyEnableConnectButton();
+    }
+
     private void conditionallyEnableConnectButton() {
         View v = getDialog().findViewById(android.R.id.button1);
         if (v == null)
             return;
                 
-        Log.v("Required for connect: ", requiredPreferences.toString() );
-        Log.v("Currently set", okPreferences.toString());
+        Log.v(LOG_TAG, "Required prefs: " + requiredPreferences.toString());
+        Log.v(LOG_TAG, "Currently set : " + okPreferences.toString());
 
-        v.setEnabled(okPreferences.containsAll(requiredPreferences));
+        boolean enabled = okPreferences.containsAll(requiredPreferences);
+        v.setEnabled(enabled);
     }
     
     private void conditionallyEnableDisconnectButton() {
