@@ -10,7 +10,7 @@ public class ViewHolderDevice extends RecyclerView.ViewHolder {
 
 	public ViewHolderDevice(View v) {
 		super(v);
-		mLabel1 = (TextView) v.findViewById(R.id.title);
+		mLabel1 = v.findViewById(R.id.title);
 	}
 
 	public TextView getLabel1() {

@@ -22,8 +22,7 @@ import st.alr.homA.view.ViewHolderDevice;
 import st.alr.homA.view.ViewHolderRoom;
 
 public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    protected ValueSortedMap<K, T> mMap;
-    protected LayoutInflater mInflater;
+    private ValueSortedMap<K, T> mMap;
     private final Handler mUiThreadHandler;
 
     private final int ROOM = 0, DEVICE = 1,
@@ -31,7 +30,6 @@ public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView
     
     public MapAdapter(Context context) {
         mMap = new ValueSortedMap<>();
-        mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mUiThreadHandler = new Handler(context.getMainLooper());
     }
 
@@ -196,7 +194,7 @@ public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView
                         @Override
                         public void run() {
                             vh.setContent((Control) sender);
-                        };
+                        }
                     });
                 }
             });
@@ -220,7 +218,7 @@ public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView
                         @Override
                         public void run() {
                             vh.setContent((Control) sender);
-                        };
+                        }
                     });
                 }
             });
@@ -245,7 +243,7 @@ public abstract class MapAdapter<K, T> extends RecyclerView.Adapter<RecyclerView
                         @Override
                         public void run() {
                             vh.setContent((Control) sender);
-                        };
+                        }
                     });
                 }
             });

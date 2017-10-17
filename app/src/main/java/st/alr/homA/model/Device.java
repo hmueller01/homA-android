@@ -46,12 +46,12 @@ public class Device implements Comparable<Device> {
         return mRoom;
     }
 
-    public void removeFromCurrentRoom() {
+    private void removeFromCurrentRoom() {
         if (mRoom != null) {
             mRoom.removeDevice(this);
             if (mRoom.getDeviceCount() == 0) {
                 Log.v(toString(), "Room " + mRoom.getId() + " is empty, removing it");
-                App.getInstance().removeRoom(mRoom);
+                App.removeRoom(mRoom);
             }
         }
     }
@@ -66,10 +66,10 @@ public class Device implements Comparable<Device> {
 
                 String cleanedName = (roomname != null) && !roomname.equals("") ? roomname : Defaults.VALUE_ROOM_NAME;
 
-                Room newRoom = App.getInstance().getRoom(cleanedName);
+                Room newRoom = App.getRoom(cleanedName);
                 if (newRoom == null) {
                     newRoom = new Room(mContext, cleanedName);
-                    App.getInstance().addRoom(newRoom);
+                    App.addRoom(newRoom);
                 }
 
                 removeFromCurrentRoom();

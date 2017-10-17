@@ -39,7 +39,7 @@ public class ActivityPreferences extends PreferenceActivity {
                 if (key.equals(Defaults.SETTINGS_KEY_NOTIFICATION_ENABLED) ||
                         key.equals(Defaults.SETTINGS_KEY_QUICKPUBLISH_NOTIFICATION)) {
                     Log.v(this.toString(), "onSharedPreferenceChanged: " + key);
-                    App.getInstance().handleNotification();
+                    App.handleNotification();
                 }
             }
         };
@@ -53,16 +53,6 @@ public class ActivityPreferences extends PreferenceActivity {
                 .replace(android.R.id.content, new CustomPreferencesFragment()).commit();
     }
 
-    public static String getAndroidId() {
-        String id = App.getAndroidId();
-
-        // MQTT specification doesn't allow client IDs longer than 23 chars
-        if (id.length() > 22)
-            id = id.substring(0, 22);
-
-        return id;
-    }
-
     public static int getBrokerAuthType() {
         return PreferenceManager.getDefaultSharedPreferences(App.getContext()).getInt(
                 Defaults.SETTINGS_KEY_BROKER_AUTH, Defaults.VALUE_BROKER_AUTH_ANONYMOUS);
@@ -72,12 +62,6 @@ public class ActivityPreferences extends PreferenceActivity {
         return PreferenceManager.getDefaultSharedPreferences(App.getContext()).getString(
                 Defaults.SETTINGS_KEY_BROKER_USERNAME, "");
     }
-
-    public static String getDeviceName()
-    {
-        return getAndroidId();
-    }
-
 
     public static class CustomPreferencesFragment extends PreferenceFragment {
 
@@ -108,6 +92,10 @@ public class ActivityPreferences extends PreferenceActivity {
 
     @Override
     protected void onDestroy() {
+        Log.v(this.toString(), "onDestroy()");
+        // Clean up static data to avoid leaking
+        mServerPreference = null;
+
         super.onDestroy();
     }
 

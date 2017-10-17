@@ -38,7 +38,7 @@ public abstract class ControlView {
                     @Override
                     public void run() {
                         setContent((Control) sender);
-                    };
+                    }
                 });
             }
         });

@@ -1,13 +1,15 @@
 
 package st.alr.homA.support;
 
+import android.net.Uri;
+
 import st.alr.homA.App;
 import st.alr.homA.R;
-import android.net.Uri;
 
 public class Defaults {
     //public static final String BUGSNAG_API_KEY = "635a508c10fa87191e33662dd3c08512";
     public static final String MQTT_PING_ACTION = "st.alr.homA.ServiceMqtt.PING";
+    public static final String NOTIFCATION_CHANNEL_ID = "homa";
     public static final int NOTIFCATION_ID = 1337;
     public static final int GET_IMAGE_ID = 1338;
 
@@ -77,7 +79,7 @@ public class Defaults {
                     id = R.string.connectivityDisconnected;
 
             }
-            return App.getInstance().getString(id);
+            return App.getContext().getString(id);
         }
     }
 
