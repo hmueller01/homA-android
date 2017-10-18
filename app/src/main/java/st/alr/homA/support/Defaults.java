@@ -50,11 +50,14 @@ public class Defaults {
     public static final int VALUE_BROKER_SECURITY_SSL_CUSTOMCACRT = 2;
 
     public static class State {
-        public static enum ServiceMqtt {
+        public enum ServiceMqtt {
             INITIAL, CONNECTING, CONNECTED, DISCONNECTING, DISCONNECTED_WAITINGFORINTERNET, DISCONNECTED, DISCONNECTED_USERDISCONNECT, DISCONNECTED_DATADISABLED, DISCONNECTED_ERROR
         }
 
         public static String toString(ServiceMqtt state) {
+            if (state == null)
+                return null;
+
             int id;
             switch (state) {
                 case CONNECTED:

@@ -9,14 +9,14 @@ import android.os.IBinder;
 import android.util.Log;
 
 public abstract class ServiceBindable extends Service {
-    private final String TAG  = "ServiceBindable";
+    private final String LOG_TAG = ServiceBindable.class.getSimpleName();
     protected boolean mStarted;
     protected ServiceBinder mBinder;
     
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.v(this.TAG, "onCreate()");
+        Log.v(LOG_TAG, "onCreate()");
         mBinder = new ServiceBinder(this);
     }
     
@@ -24,7 +24,7 @@ public abstract class ServiceBindable extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.v(this.TAG, "onBind()");
+        Log.v(LOG_TAG, "onBind()");
         if (!mStarted) {
             mStarted = true;
             onStartOnce();
@@ -50,7 +50,7 @@ public abstract class ServiceBindable extends Service {
     
     @Override
     public void onDestroy() {
-        Log.v(this.TAG, "onDestroy()");
+        Log.v(LOG_TAG, "onDestroy()");
         if (mBinder != null) {
             mBinder.close();
             mBinder = null;
@@ -60,7 +60,7 @@ public abstract class ServiceBindable extends Service {
     
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.v(this.TAG, "onStartCommand()");
+        Log.v(LOG_TAG, "onStartCommand()");
         if (!mStarted) {
             mStarted = true;
             onStartOnce();

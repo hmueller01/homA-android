@@ -142,6 +142,11 @@ public class App extends Application {
     private void createNotification() {
         mNotificationBuilder = new NotificationCompat.Builder(this, Defaults.NOTIFCATION_CHANNEL_ID);
         Intent resultIntent = new Intent(this, ActivityMain.class);
+        // Just use the same intent filters as Android uses when it launches the app
+        // Thanks to https://stackoverflow.com/questions/5502427/resume-application-and-stack-from-notification
+        resultIntent.setAction(Intent.ACTION_MAIN);
+        resultIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        resultIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(ActivityMain.class);
         stackBuilder.addNextIntent(resultIntent);

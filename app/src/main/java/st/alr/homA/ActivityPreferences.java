@@ -21,6 +21,7 @@ import st.alr.homA.support.Defaults;
 import st.alr.homA.support.Events;
 
 public class ActivityPreferences extends PreferenceActivity {
+    private final String LOG_TAG = ActivityPreferences.class.getSimpleName();
     private static Preference mServerPreference;
 
     @Override
@@ -38,7 +39,7 @@ public class ActivityPreferences extends PreferenceActivity {
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                 if (key.equals(Defaults.SETTINGS_KEY_NOTIFICATION_ENABLED) ||
                         key.equals(Defaults.SETTINGS_KEY_QUICKPUBLISH_NOTIFICATION)) {
-                    Log.v(this.toString(), "onSharedPreferenceChanged: " + key);
+                    Log.v(LOG_TAG, "onSharedPreferenceChanged: " + key);
                     App.handleNotification();
                 }
             }
@@ -92,7 +93,8 @@ public class ActivityPreferences extends PreferenceActivity {
 
     @Override
     protected void onDestroy() {
-        Log.v(this.toString(), "onDestroy()");
+        Log.v(LOG_TAG, "onDestroy()");
+        EventBus.getDefault().unregister(this);
         // Clean up static data to avoid leaking
         mServerPreference = null;
 

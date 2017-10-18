@@ -213,6 +213,8 @@ public class ActivityMain extends FragmentActivity {
         stopService(new Intent(this, ServiceMqtt.class));
         stopService(new Intent(this, ServiceBackgroundPublish.class));
 
+        EventBus.getDefault().unregister(this);
+
         super.onDestroy();
     }
 

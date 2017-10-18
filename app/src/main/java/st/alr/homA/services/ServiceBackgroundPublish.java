@@ -19,6 +19,7 @@ import st.alr.homA.support.Defaults;
 import st.alr.homA.support.Events;
 
 public class ServiceBackgroundPublish extends Service {
+    private final String LOG_TAG = ServiceBackgroundPublish.class.getSimpleName();
     private boolean waitingForConnection = false;
     Runnable deferred;
 
@@ -29,7 +30,7 @@ public class ServiceBackgroundPublish extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.v(this.toString(), "Background publish service started ");
+        Log.v(LOG_TAG, "Background publish service started ");
         EventBus.getDefault().register(this);
         startService(new Intent(this, ServiceMqtt.class));
 
@@ -38,7 +39,7 @@ public class ServiceBackgroundPublish extends Service {
 
             if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)
                     || NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
-                Log.v(this.toString(), "Background NFC publish");
+                Log.v(LOG_TAG, "Background NFC publish");
 
                 Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
                 Ndef ndefTag = Ndef.get(tag);
@@ -56,13 +57,13 @@ public class ServiceBackgroundPublish extends Service {
                     }
                 }
             } else if (action.equals("st.alr.homA.action.QUICKPUBLISH")) {
-                Log.v(this.toString(), "Background notification publish");
+                Log.v(LOG_TAG, "Background notification publish");
                 handleMessage(intent.getStringExtra("qp"));
             } else {
-                Log.d(this.toString(), "Unknown intent with action: " + action);
+                Log.d(LOG_TAG, "Unknown intent with action: " + action);
             }
         } else {
-            Log.v(this.toString(), "NFC Service started without intent, abandon ship");
+            Log.v(LOG_TAG, "NFC Service started without intent, abandon ship");
         }
 
         stopSelf();
@@ -73,7 +74,7 @@ public class ServiceBackgroundPublish extends Service {
         ArrayList<Quickpublish> qps = Quickpublish.fromJsonString(quickpublishJson);
 
         for (Quickpublish qp : qps) {
-            Log.v(this.toString(), "Got Quickpublish from tag: " + qp.toString());
+            Log.v(LOG_TAG, "Got Quickpublish from tag: " + qp.toString());
             ServiceMqtt.getInstance().publish(qp.getTopic(), qp.getPayload(), qp.isRetained(), 0, 20, null, null);
         }
     }
@@ -91,4 +92,13 @@ public class ServiceBackgroundPublish extends Service {
     public IBinder onBind(Intent arg0) {
         return null;
     }
+
+    @Override
+    public void onDestroy() {
+        Log.v(LOG_TAG, "onDestroy()");
+        EventBus.getDefault().unregister(this);
+
+        super.onDestroy();
+    }
+
 }

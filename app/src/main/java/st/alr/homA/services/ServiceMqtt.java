@@ -475,6 +475,8 @@ public class ServiceMqtt extends ServiceBindable implements MqttCallback {
         // cancel all notifications
         App.cancelNotification();
 
+        EventBus.getDefault().unregister(this);
+
         // Clean up static data to avoid leaking
         instance = null;
         state = null;
